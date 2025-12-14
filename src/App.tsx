@@ -11,6 +11,13 @@ import Permissions from "./pages/Permissions";
 import Members from "./pages/Members";
 import { OrganizationProvider } from "./context/OrganizationContext";
 
+// Platform (Super Admin) Pages
+import PlatformProviders from "./pages/platform/Providers";
+import PlatformBuckets from "./pages/platform/Buckets";
+import PlatformOrganizations from "./pages/platform/Organizations";
+import PlatformUsers from "./pages/platform/Users";
+import PlatformAudit from "./pages/platform/AuditLog";
+
 
 export default function App() {
   return (
@@ -23,6 +30,7 @@ export default function App() {
           <Layout>
             <Routes>
               <Route path="/" element={<Dashboard />} />
+              {/* Legacy routes (redirects to platform for super admin) */}
               <Route path="/providers" element={<Providers />} />
               <Route path="/buckets" element={<Buckets />} />
               <Route path="/groups" element={<Groups />} />
@@ -30,6 +38,13 @@ export default function App() {
               <Route path="/users" element={<Users />} />
               <Route path="/members" element={<Members />} />
               <Route path="/permissions" element={<Permissions />} />
+              
+              {/* Platform (Super Admin) Routes */}
+              <Route path="/platform/providers" element={<PlatformProviders />} />
+              <Route path="/platform/buckets" element={<PlatformBuckets />} />
+              <Route path="/platform/organizations" element={<PlatformOrganizations />} />
+              <Route path="/platform/users" element={<PlatformUsers />} />
+              <Route path="/platform/audit" element={<PlatformAudit />} />
             </Routes>
           </Layout>
         </OrganizationProvider>
@@ -37,4 +52,3 @@ export default function App() {
     </>
   );
 }
-
