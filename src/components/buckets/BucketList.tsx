@@ -38,7 +38,6 @@ export default function BucketList() {
             <TableHead>Virtual Bucket</TableHead>
             <TableHead>Provider</TableHead>
             <TableHead>Remote Bucket</TableHead>
-            <TableHead>Date Created</TableHead>
             <TableHead className="w-[80px]"></TableHead>
           </TableRow>
         </TableHeader>
@@ -51,9 +50,6 @@ export default function BucketList() {
               <TableCell className="text-muted-foreground">{bucket.provider_name}</TableCell>
               <TableCell className="font-mono text-xs text-muted-foreground">
                 {bucket.remote_bucket_name}
-              </TableCell>
-              <TableCell className="text-muted-foreground text-xs">
-                {new Date(bucket.created_at).toLocaleDateString()}
               </TableCell>
               <TableCell className="text-right">
                 <Button

@@ -1,9 +1,10 @@
-import { Database, FolderOpen, Key, Users, ArrowRight } from "lucide-react";
+import { Database, FolderOpen, Key, Users, ArrowRight, Shield } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useProviders } from "../api/providers";
 import { useBuckets } from "../api/buckets";
 import { useAccessKeys } from "../api/keys";
 import { useUsers } from "../api/users";
+import { useGroups } from "../api/groups";
 import Card, { CardContent, CardHeader } from "../components/ui/Card";
 
 export default function Dashboard() {
@@ -11,6 +12,7 @@ export default function Dashboard() {
   const { data: buckets } = useBuckets();
   const { data: keys } = useAccessKeys();
   const { data: users } = useUsers();
+  const { data: groups } = useGroups();
 
   const stats = [
     {
@@ -28,10 +30,15 @@ export default function Dashboard() {
     },
     {
       label: "Active Keys",
-      value: keys?.filter(k => k.enabled).length ?? 0,
-      total: keys?.length ?? 0,
+      value: keys?.length ?? 0,
       icon: Key,
       href: "/keys",
+    },
+    {
+      label: "User Groups",
+      value: groups?.length ?? 0,
+      icon: Shield,
+      href: "/groups",
     },
     {
       label: "Total Users",
@@ -48,7 +55,7 @@ export default function Dashboard() {
         <p className="text-muted-foreground mt-2">Overview of your VFX storage infrastructure.</p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
@@ -100,6 +107,15 @@ export default function Dashboard() {
                 <div className="font-medium">Configure Buckets</div>
                 <div className="text-sm text-muted-foreground mt-1">Map remote buckets to virtual paths for your artists.</div>
               </Link>
+
+              <Link to="/groups" className="block p-4 rounded-lg bg-muted/30 border border-border/50 hover:bg-muted/80 hover:border-primary/50 transition-all group">
+                <div className="flex items-center justify-between mb-2">
+                  <Shield className="h-5 w-5 text-primary" />
+                  <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                </div>
+                <div className="font-medium">Manage Groups</div>
+                <div className="text-sm text-muted-foreground mt-1">Manage teams and their permissions.</div>
+              </Link>
             </div>
           </CardContent>
         </Card>
@@ -132,3 +148,4 @@ export default function Dashboard() {
     </div>
   );
 }
+

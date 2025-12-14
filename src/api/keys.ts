@@ -1,6 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useApiClient } from "./client";
-import type { AccessKey, CreateKeyInput, CreateKeyResponse } from "../types/api";
+import type { S3AccessKey } from "../types/api";
+
+// Assuming CreateKeyRequest structure based on usage
+interface CreateKeyRequest {
+  user_id: string;
+  name?: string;
+  expiration?: string;
+}
 
 export function useAccessKeys() {
   const api = useApiClient();
@@ -8,7 +15,7 @@ export function useAccessKeys() {
   return useQuery({
     queryKey: ["keys"],
     queryFn: async () => {
-      const { data } = await api.get<{ keys: AccessKey[] }>("/keys");
+      const { data } = await api.get<{ keys: S3AccessKey[] }>("/admin/keys");
       return data.keys;
     },
   });
@@ -19,8 +26,8 @@ export function useCreateAccessKey() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (input: CreateKeyInput) => {
-      const { data } = await api.post<CreateKeyResponse>("/keys", input);
+    mutationFn: async (input: CreateKeyRequest) => {
+      const { data } = await api.post<S3AccessKey>("/admin/keys", input);
       return data;
     },
     onSuccess: () => {
@@ -35,10 +42,11 @@ export function useDeleteAccessKey() {
 
   return useMutation({
     mutationFn: async (keyId: string) => {
-      await api.delete(`/keys/${keyId}`);
+      await api.delete(`/admin/keys/${keyId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["keys"] });
     },
   });
 }
+

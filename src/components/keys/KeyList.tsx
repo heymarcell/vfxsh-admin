@@ -53,8 +53,7 @@ export default function KeyList() {
           <TableRow>
             <TableHead>Access Key ID</TableHead>
             <TableHead>Name</TableHead>
-            <TableHead>User / Email</TableHead>
-            <TableHead>Status</TableHead>
+            <TableHead>User ID</TableHead>
             <TableHead>Expires</TableHead>
             <TableHead className="w-[100px]"></TableHead>
           </TableRow>
@@ -73,17 +72,8 @@ export default function KeyList() {
                 </div>
               </TableCell>
               <TableCell className="font-medium">{key.name || "—"}</TableCell>
-              <TableCell className="text-muted-foreground">
-                {key.user_email || key.user_id}
-              </TableCell>
-              <TableCell>
-                <div className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ${
-                    key.enabled
-                      ? "bg-green-500/15 text-green-600 dark:text-green-400"
-                      : "bg-destructive/15 text-destructive"
-                  }`}>
-                  {key.enabled ? "Active" : "Disabled"}
-                </div>
+              <TableCell className="text-muted-foreground font-mono text-xs">
+                {key.user_id}
               </TableCell>
               <TableCell className="text-muted-foreground text-xs">
                 {key.expiration
@@ -108,3 +98,4 @@ export default function KeyList() {
     </div>
   );
 }
+

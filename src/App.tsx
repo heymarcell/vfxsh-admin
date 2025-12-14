@@ -6,6 +6,8 @@ import Providers from "./pages/Providers";
 import Buckets from "./pages/Buckets";
 import Keys from "./pages/Keys";
 import Users from "./pages/Users";
+import Groups from "./pages/Groups";
+
 
 export default function App() {
   return (
@@ -19,6 +21,7 @@ export default function App() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/providers" element={<Providers />} />
             <Route path="/buckets" element={<Buckets />} />
+            <Route path="/groups" element={<Groups />} />
             <Route path="/keys" element={<Keys />} />
             <Route path="/users" element={<Users />} />
           </Routes>
@@ -27,3 +30,4 @@ export default function App() {
     </>
   );
 }
+

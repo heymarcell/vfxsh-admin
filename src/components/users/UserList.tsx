@@ -79,7 +79,7 @@ function UserAclModal({
     [bucketName: string]: string; // "read" | "write" | "admin" | "none"
   }>();
 
-  const onSubmit = (data: any) => {
+  const onSubmit = (data: Record<string, string>) => {
     if (!userId) return;
 
     // Transform form data to payload
@@ -123,7 +123,7 @@ function UserAclModal({
               <div key={bucket.bucket_name} className="flex items-center justify-between space-x-4 border border-border p-3 rounded-md bg-muted/20">
                 <div className="flex-1 space-y-1">
                   <p className="font-medium text-sm leading-none">{bucket.bucket_name}</p>
-                  <p className="text-xs text-muted-foreground">{bucket.remote_bucket_name} on {bucket.provider_name}</p>
+                  <p className="text-xs text-muted-foreground">{bucket.remote_bucket_name} {bucket.provider_name ? `on ${bucket.provider_name}` : ""}</p>
                 </div>
                 <select
                   className="h-8 w-[100px] rounded-md border border-input bg-background px-2 py-1 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"

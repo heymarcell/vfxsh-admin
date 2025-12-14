@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useCreateAccessKey } from "../../api/keys";
-import type { CreateKeyResponse } from "../../types/api";
+import type { S3AccessKey } from "../../types/api";
 import Button from "../ui/Button";
 import Input from "../ui/Input";
 import KeySecret from "./KeySecret";
@@ -18,7 +18,7 @@ type KeyFormValues = z.infer<typeof keySchema>;
 
 export default function KeyForm({ onSuccess }: { onSuccess?: () => void }) {
   const createKey = useCreateAccessKey();
-  const [createdKey, setCreatedKey] = useState<CreateKeyResponse | null>(null);
+  const [createdKey, setCreatedKey] = useState<S3AccessKey | null>(null);
 
   const {
     register,
@@ -51,12 +51,13 @@ export default function KeyForm({ onSuccess }: { onSuccess?: () => void }) {
       {createdKey && (
         <KeySecret
           accessKeyId={createdKey.access_key_id}
-          secretAccessKey={createdKey.secret_access_key}
+          secretAccessKey={createdKey.secret_key || "No Secret Returned"}
           onClose={() => setCreatedKey(null)}
         />
       )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+
         <Input
           label="User Email or ID"
           placeholder="artist@studio.com"

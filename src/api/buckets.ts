@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useApiClient } from "./client";
-import type { Bucket, CreateBucketInput } from "../types/api";
+import type { BucketMapping, CreateBucketRequest } from "../types/api";
 
 export function useBuckets() {
   const api = useApiClient();
@@ -8,7 +8,7 @@ export function useBuckets() {
   return useQuery({
     queryKey: ["buckets"],
     queryFn: async () => {
-      const { data } = await api.get<{ buckets: Bucket[] }>("/buckets");
+      const { data } = await api.get<{ buckets: BucketMapping[] }>("/admin/buckets");
       return data.buckets;
     },
   });
@@ -19,8 +19,8 @@ export function useCreateBucket() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (input: CreateBucketInput) => {
-      const { data } = await api.post("/buckets", input);
+    mutationFn: async (input: CreateBucketRequest) => {
+      const { data } = await api.post("/admin/buckets", input);
       return data;
     },
     onSuccess: () => {
@@ -35,10 +35,11 @@ export function useDeleteBucket() {
 
   return useMutation({
     mutationFn: async (name: string) => {
-      await api.delete(`/buckets/${name}`);
+      await api.delete(`/admin/buckets/${name}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["buckets"] });
     },
   });
 }
+

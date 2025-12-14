@@ -1,11 +1,11 @@
 import { Trash2, ExternalLink, ShieldCheck, ShieldAlert } from "lucide-react";
 import { useDeleteProvider } from "../../api/providers";
-import type { Provider } from "../../types/api";
+import type { BucketProvider } from "../../types/api";
 import Card, { CardContent, CardHeader, CardFooter } from "../ui/Card";
 import Button from "../ui/Button";
 
 interface ProviderCardProps {
-  provider: Provider;
+  provider: BucketProvider;
 }
 
 export default function ProviderCard({ provider }: ProviderCardProps) {

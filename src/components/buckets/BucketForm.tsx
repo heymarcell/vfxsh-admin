@@ -54,7 +54,7 @@ export default function BucketForm({ onSuccess }: { onSuccess?: () => void }) {
           <option value="">Select a provider...</option>
           {providers?.map((p) => (
             <option key={p.id} value={p.id}>
-              {p.name} ({p.type})
+              {p.name}
             </option>
           ))}
         </select>

@@ -46,9 +46,9 @@ export function TableHead({ children, className }: TableProps) {
   );
 }
 
-export function TableCell({ children, className }: TableProps) {
+export function TableCell({ children, className, ...props }: React.TdHTMLAttributes<HTMLTableCellElement>) {
   return (
-    <td className={cn("p-4 align-middle [&:has([role=checkbox])]:pr-0 text-foreground", className)}>
+    <td className={cn("p-4 align-middle [&:has([role=checkbox])]:pr-0 text-foreground", className)} {...props}>
       {children}
     </td>
   );
