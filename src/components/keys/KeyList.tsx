@@ -1,5 +1,6 @@
-import { Trash2, Copy, Check } from "lucide-react";
+import { Trash2, Copy, Check, FolderOpen } from "lucide-react";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useAccessKeys, useDeleteAccessKey } from "../../api/keys";
 import Table, { TableHeader, TableBody, TableRow, TableHead, TableCell } from "../ui/Table";
 import Button from "../ui/Button";
@@ -53,13 +54,14 @@ export default function KeyList() {
           <TableRow>
             <TableHead>Access Key ID</TableHead>
             <TableHead>Name</TableHead>
-            <TableHead>User ID</TableHead>
+            <TableHead>User</TableHead>
+            <TableHead>Buckets</TableHead>
             <TableHead>Expires</TableHead>
             <TableHead className="w-[100px]"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {keys.map((key) => (
+          {keys.map((key: any) => (
             <TableRow key={key.access_key_id}>
               <TableCell>
                 <div className="flex items-center gap-2">
@@ -72,8 +74,16 @@ export default function KeyList() {
                 </div>
               </TableCell>
               <TableCell className="font-medium">{key.name || "—"}</TableCell>
-              <TableCell className="text-muted-foreground font-mono text-xs">
-                {key.user_id}
+              <TableCell>
+                <Link to="/users" className="text-primary hover:underline text-sm">
+                  {key.user_email || key.user_id}
+                </Link>
+              </TableCell>
+              <TableCell>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-green-500/20 text-green-400">
+                  <FolderOpen className="h-3 w-3" />
+                  {key.bucket_count || 0} {key.bucket_count === "all" ? "(all)" : ""}
+                </span>
               </TableCell>
               <TableCell className="text-muted-foreground text-xs">
                 {key.expiration
@@ -98,4 +108,3 @@ export default function KeyList() {
     </div>
   );
 }
-

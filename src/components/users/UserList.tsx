@@ -1,155 +1,77 @@
-import { Edit2 } from "lucide-react";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { useBuckets } from "../../api/buckets";
-import { useUpdateUserAcl, useUserAcl, useUsers } from "../../api/users";
-import type { UserAcl } from "../../types/api";
-import Button from "../ui/Button";
-import Modal from "../ui/Modal";
+import { useUsers } from "../../api/users";
 import Table, { TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/Table";
+import { FolderOpen, Key, Shield } from "lucide-react";
 
 export default function UserList() {
   const { data: users, isLoading } = useUsers();
-  const [editingUser, setEditingUser] = useState<string | null>(null);
 
   if (isLoading) return <div className="p-8 text-center text-muted-foreground">Loading users...</div>;
 
-  return (
-    <>
-      <div className="rounded-lg border border-border overflow-hidden bg-card">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>User ID</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Last Sign In</TableHead>
-              <TableHead className="w-[100px]"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {users?.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell className="font-mono text-xs text-muted-foreground">{user.id}</TableCell>
-                <TableCell className="font-medium">
-                  {user.email || "No Email"}
-                </TableCell>
-                <TableCell className="text-muted-foreground text-xs">
-                  {user.last_sign_in_at
-                    ? new Date(user.last_sign_in_at).toLocaleDateString()
-                    : "Never"}
-                </TableCell>
-                <TableCell className="text-right">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                    onClick={() => setEditingUser(user.id)}
-                  >
-                    <Edit2 className="h-4 w-4" />
-                    <span className="sr-only">Edit ACLs</span>
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+  if (!users?.length) {
+    return (
+      <div className="rounded-md border border-dashed border-border p-12 text-center">
+        <h3 className="text-lg font-medium">No Users</h3>
+        <p className="text-sm text-muted-foreground mt-1">Users will appear here when they sign in.</p>
       </div>
-
-      <UserAclModal
-        userId={editingUser}
-        isOpen={!!editingUser}
-        onClose={() => setEditingUser(null)}
-      />
-    </>
-  );
-}
-
-function UserAclModal({
-  userId,
-  isOpen,
-  onClose,
-}: {
-  userId: string | null;
-  isOpen: boolean;
-  onClose: () => void;
-}) {
-  const { data: buckets } = useBuckets();
-  const { data: acl } = useUserAcl(userId || "");
-  const updateUserAcl = useUpdateUserAcl();
-  
-  const { register, handleSubmit } = useForm<{
-    [bucketName: string]: string; // "read" | "write" | "admin" | "none"
-  }>();
-
-  const onSubmit = (data: Record<string, string>) => {
-    if (!userId) return;
-
-    // Transform form data to payload
-    const payload: UserAcl = {
-      allowed_buckets: [],
-    };
-
-    Object.entries(data).forEach(([bucket_name, permission]) => {
-      if (typeof permission === 'string' && permission !== "none") {
-        payload.allowed_buckets.push({
-            bucket_name,
-            permission: permission as "read" | "write" | "admin",
-        });
-      }
-    });
-
-    updateUserAcl.mutate(
-      { userId, acl: payload },
-      {
-        onSuccess: () => {
-          onClose();
-        },
-      }
     );
-  };
-
-  const currentPermissions = new Map(
-    acl?.allowed_buckets?.map((b) => [b.bucket_name, b.permission]) || []
-  );
+  }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Manage User Permissions">
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-4">
-        <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-            {!buckets?.length && <p className="text-sm text-muted-foreground text-center py-4">No buckets available.</p>}
-            
-            {buckets?.map((bucket) => {
-              const currentPerm = currentPermissions.get(bucket.bucket_name) || "none";
-              
-              return (
-              <div key={bucket.bucket_name} className="flex items-center justify-between space-x-4 border border-border p-3 rounded-md bg-muted/20">
-                <div className="flex-1 space-y-1">
-                  <p className="font-medium text-sm leading-none">{bucket.bucket_name}</p>
-                  <p className="text-xs text-muted-foreground">{bucket.remote_bucket_name} {bucket.provider_name ? `on ${bucket.provider_name}` : ""}</p>
+    <div className="rounded-lg border border-border overflow-hidden bg-card">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Email</TableHead>
+            <TableHead>Name</TableHead>
+            <TableHead>Groups</TableHead>
+            <TableHead>Buckets</TableHead>
+            <TableHead>Keys</TableHead>
+            <TableHead>Last Sign In</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {users.map((user: any) => (
+            <TableRow key={user.id}>
+              <TableCell className="font-medium">{user.email || "—"}</TableCell>
+              <TableCell className="text-muted-foreground">{user.name || "—"}</TableCell>
+              <TableCell>
+                <div className="flex flex-wrap gap-1">
+                  {user.groups?.length > 0 ? (
+                    user.groups.slice(0, 3).map((g: { id: string; name: string }) => (
+                      <span key={g.id} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-purple-500/20 text-purple-400">
+                        <Shield className="h-3 w-3" />
+                        {g.name}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-muted-foreground text-xs">—</span>
+                  )}
+                  {user.groups?.length > 3 && (
+                    <span className="text-xs text-muted-foreground">+{user.groups.length - 3}</span>
+                  )}
                 </div>
-                <select
-                  className="h-8 w-[100px] rounded-md border border-input bg-background px-2 py-1 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                  defaultValue={currentPerm}
-                  {...register(bucket.bucket_name)}
-                >
-                  <option value="none">No Access</option>
-                  <option value="read">Read Only</option>
-                  <option value="write">Read & Write</option>
-                  <option value="admin">Admin</option>
-                </select>
-              </div>
-            )})}
-        </div>
-
-        <div className="flex justify-end gap-2 pt-2">
-          <Button type="button" variant="ghost" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button type="submit" isLoading={updateUserAcl.isPending}>
-            Save Permissions
-          </Button>
-        </div>
-      </form>
-    </Modal>
+              </TableCell>
+              <TableCell>
+                <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
+                  <FolderOpen className="h-3.5 w-3.5" />
+                  {user.bucket_count || 0}
+                </span>
+              </TableCell>
+              <TableCell>
+                <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
+                  <Key className="h-3.5 w-3.5" />
+                  {user.key_count || 0}
+                </span>
+              </TableCell>
+              <TableCell className="text-muted-foreground text-sm">
+                {user.last_sign_in_at
+                  ? new Date(user.last_sign_in_at).toLocaleDateString()
+                  : "Never"}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 }

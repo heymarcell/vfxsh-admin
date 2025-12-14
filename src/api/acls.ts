@@ -33,18 +33,57 @@ export function useSetUserBucketPermission() {
 
   return useMutation({
     mutationFn: async ({ userId, bucketName, permission }: { userId: string; bucketName: string; permission: string | null }) => {
-      // Get current ACLs for this user
-      const { data: currentAcls } = await api.get<{ acls: { bucket_name: string; permission: string }[] }>(`/users/${userId}/acl`);
+      // Get current matrix from cache
+      const currentMatrix = queryClient.getQueryData<AclMatrix>(["acls", "users"]) || {};
+      const userAcls = currentMatrix[userId] || {};
       
       // Build new ACL list
-      const acls = (currentAcls.acls || []).filter(a => a.bucket_name !== bucketName);
+      const acls: { bucket_name: string; permission: string }[] = [];
+      for (const [bucket, perm] of Object.entries(userAcls)) {
+        if (bucket !== bucketName) {
+          acls.push({ bucket_name: bucket, permission: perm });
+        }
+      }
+      
+      // Add new permission if not removing
       if (permission && permission !== 'none') {
         acls.push({ bucket_name: bucketName, permission });
       }
 
       await api.put(`/users/${userId}/acl`, { acls });
+      return { userId, bucketName, permission };
     },
-    onSuccess: () => {
+    onMutate: async ({ userId, bucketName, permission }) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["acls", "users"] });
+
+      // Snapshot the previous value
+      const previousMatrix = queryClient.getQueryData<AclMatrix>(["acls", "users"]);
+
+      // Optimistically update to the new value
+      queryClient.setQueryData<AclMatrix>(["acls", "users"], (old) => {
+        const newMatrix = { ...old };
+        if (!newMatrix[userId]) newMatrix[userId] = {};
+        
+        if (permission && permission !== 'none') {
+          newMatrix[userId] = { ...newMatrix[userId], [bucketName]: permission };
+        } else {
+          // Remove the bucket from user's permissions
+          const { [bucketName]: _, ...rest } = newMatrix[userId];
+          newMatrix[userId] = rest;
+        }
+        return newMatrix;
+      });
+
+      return { previousMatrix };
+    },
+    onError: (_err, _vars, context) => {
+      // Rollback on error
+      if (context?.previousMatrix) {
+        queryClient.setQueryData(["acls", "users"], context.previousMatrix);
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["acls", "users"] });
     },
   });
@@ -61,8 +100,33 @@ export function useSetGroupBucketPermission() {
       } else {
         await api.post(`/groups/${groupId}/access`, { bucket: bucketName, permission });
       }
+      return { groupId, bucketName, permission };
     },
-    onSuccess: () => {
+    onMutate: async ({ groupId, bucketName, permission }) => {
+      await queryClient.cancelQueries({ queryKey: ["acls", "groups"] });
+      const previousMatrix = queryClient.getQueryData<AclMatrix>(["acls", "groups"]);
+
+      queryClient.setQueryData<AclMatrix>(["acls", "groups"], (old) => {
+        const newMatrix = { ...old };
+        if (!newMatrix[groupId]) newMatrix[groupId] = {};
+        
+        if (permission && permission !== 'none') {
+          newMatrix[groupId] = { ...newMatrix[groupId], [bucketName]: permission };
+        } else {
+          const { [bucketName]: _, ...rest } = newMatrix[groupId];
+          newMatrix[groupId] = rest;
+        }
+        return newMatrix;
+      });
+
+      return { previousMatrix };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previousMatrix) {
+        queryClient.setQueryData(["acls", "groups"], context.previousMatrix);
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["acls", "groups"] });
     },
   });

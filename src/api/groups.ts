@@ -92,3 +92,31 @@ export function useGrantGroupAccess() {
     },
   });
 }
+
+export function useUpdateGroup() {
+  const api = useApiClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ groupId, name, description }: { groupId: string; name?: string; description?: string }) => {
+      await api.put(`/groups/${groupId}`, { name, description });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["groups"] });
+    },
+  });
+}
+
+export function useDeleteGroup() {
+  const api = useApiClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (groupId: string) => {
+      await api.delete(`/groups/${groupId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["groups"] });
+    },
+  });
+}

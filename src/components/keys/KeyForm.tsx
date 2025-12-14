@@ -42,9 +42,14 @@ export default function KeyForm({ onSuccess }: { onSuccess?: () => void }) {
       onSuccess: (response) => {
         setCreatedKey(response);
         reset();
-        onSuccess?.();
+        // Don't call onSuccess here - wait until user acknowledges secret
       },
     });
+  };
+
+  const handleSecretAcknowledged = () => {
+    setCreatedKey(null);
+    onSuccess?.(); // Now close the parent modal
   };
 
   return (
@@ -54,7 +59,7 @@ export default function KeyForm({ onSuccess }: { onSuccess?: () => void }) {
         <KeySecret
           accessKeyId={createdKey.access_key_id}
           secretAccessKey={createdKey.secret_key || "No Secret Returned"}
-          onClose={() => setCreatedKey(null)}
+          onClose={handleSecretAcknowledged}
         />
       )}
 
