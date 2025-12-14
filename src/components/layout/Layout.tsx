@@ -9,25 +9,63 @@ import {
   Box,
   Group,
   Shield,
-  UserCog
+  UserCog,
+  Building2,
+  FileText,
+  Layers
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { ModeToggle } from "./ModeToggle";
 import { OrgSwitcher } from "./OrgSwitcher";
+import { useOrganization } from "../../context/OrganizationContext";
+import { useMemo } from "react";
 
-const navItems = [
-  { path: "/", label: "Dashboard", icon: LayoutDashboard },
-  { path: "/providers", label: "Providers", icon: Database },
-  { path: "/buckets", label: "Buckets", icon: FolderOpen },
-  { path: "/keys", label: "Access Keys", icon: Key },
-  { path: "/groups", label: "Groups", icon: Group },
-  { path: "/users", label: "Users", icon: Users },
-  { path: "/members", label: "Members", icon: UserCog },
-  { path: "/permissions", label: "Permissions", icon: Shield },
+type NavVisibility = 'always' | 'superAdmin' | 'orgAdmin' | 'member';
+
+interface NavItem {
+  path: string;
+  label: string;
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  show: NavVisibility;
+}
+
+const navItems: NavItem[] = [
+  { path: "/", label: "Dashboard", icon: LayoutDashboard, show: "always" },
+  // Super Admin only
+  { path: "/platform/providers", label: "Providers", icon: Database, show: "superAdmin" },
+  { path: "/platform/buckets", label: "Source Buckets", icon: FolderOpen, show: "superAdmin" },
+  { path: "/platform/organizations", label: "Organizations", icon: Building2, show: "superAdmin" },
+  { path: "/platform/users", label: "All Users", icon: Users, show: "superAdmin" },
+  { path: "/platform/audit", label: "Audit Log", icon: FileText, show: "superAdmin" },
+  // Org Admin (owner/admin)
+  { path: "/buckets", label: "Virtual Buckets", icon: Layers, show: "orgAdmin" },
+  { path: "/groups", label: "Groups", icon: Group, show: "orgAdmin" },
+  { path: "/members", label: "Members", icon: UserCog, show: "orgAdmin" },
+  { path: "/permissions", label: "Permissions", icon: Shield, show: "orgAdmin" },
+  // Member+
+  { path: "/keys", label: "Access Keys", icon: Key, show: "member" },
 ];
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
+  const { isSuperAdmin, isAdmin } = useOrganization();
+
+  const filteredNavItems = useMemo(() => {
+    return navItems.filter(item => {
+      switch (item.show) {
+        case 'always':
+          return true;
+        case 'superAdmin':
+          return isSuperAdmin;
+        case 'orgAdmin':
+          return isAdmin; // owner or admin
+        case 'member':
+          return true; // everyone can see member items (but backend will restrict)
+        default:
+          return false;
+      }
+    });
+  }, [isSuperAdmin, isAdmin]);
 
   return (
     <div className="min-h-screen bg-background text-foreground flex">
@@ -42,7 +80,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </Link>
         </div>
         <nav className="p-4 space-y-1">
-          {navItems.map((item) => {
+          {filteredNavItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
             return (
@@ -62,6 +100,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
+        
+        {/* Super Admin Badge */}
+        {isSuperAdmin && (
+          <div className="absolute bottom-4 left-4 right-4">
+            <div className="px-3 py-2 rounded-lg bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30">
+              <p className="text-xs font-medium text-purple-300">Super Admin</p>
+            </div>
+          </div>
+        )}
       </aside>
 
       {/* Main content */}
@@ -69,9 +116,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {/* Header */}
         <header className="sticky top-0 z-10 h-16 border-b border-border bg-background/80 backdrop-blur-md px-6 flex items-center justify-between">
           <div>
-            {/* Breadcrumb-ish placeholder */}
             <h2 className="text-lg font-semibold text-foreground">
-              {navItems.find(i => i.path === location.pathname)?.label || "Dashboard"}
+              {filteredNavItems.find(i => i.path === location.pathname)?.label || "Dashboard"}
             </h2>
           </div>
           <div className="flex items-center gap-4">
