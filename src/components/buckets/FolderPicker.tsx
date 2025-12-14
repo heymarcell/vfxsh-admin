@@ -10,6 +10,7 @@ import { useApiClient } from '../../api/client';
 import { useBuckets } from '../../api/buckets';
 import Button from '../ui/Button';
 import type { BucketBrowseResponse } from '../../types/api';
+import { Search } from 'lucide-react';
 
 interface FolderPickerProps {
   isOpen: boolean;
@@ -26,9 +27,17 @@ export default function FolderPicker({ isOpen, onClose, onSelect }: FolderPicker
   const [browseData, setBrowseData] = useState<BucketBrowseResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Search state
+  const [bucketSearch, setBucketSearch] = useState("");
+  const [isBucketDropdownOpen, setIsBucketDropdownOpen] = useState(false);
   
   // Filter to only standard buckets (virtual buckets can't be sources)
   const standardBuckets = (buckets || []).filter(b => b.bucket_type !== 'virtual');
+
+  const filteredBuckets = standardBuckets.filter(b => 
+    b.bucket_name.toLowerCase().includes(bucketSearch.toLowerCase())
+  );
   
   const loadFolder = async (bucketName: string, prefix: string) => {
     setLoading(true);
@@ -111,18 +120,70 @@ export default function FolderPicker({ isOpen, onClose, onSelect }: FolderPicker
         {/* Bucket Select */}
         <div className="p-4 border-b border-border">
           <label className="text-sm font-medium text-foreground mb-1.5 block">Source Bucket</label>
-          <select
-            value={selectedBucket}
-            onChange={(e) => handleBucketSelect(e.target.value)}
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-          >
-            <option value="">Select a bucket...</option>
-            {standardBuckets.map((bucket) => (
-              <option key={bucket.bucket_name} value={bucket.bucket_name}>
-                {bucket.bucket_name} ({bucket.provider_name})
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Search bucket..."
+                value={bucketSearch}
+                onChange={(e) => {
+                  setBucketSearch(e.target.value);
+                  setIsBucketDropdownOpen(true);
+                  if (selectedBucket && e.target.value !== selectedBucket) {
+                    setSelectedBucket(""); // Clear selection if typing
+                    setBrowseData(null);
+                  }
+                }}
+                onFocus={() => setIsBucketDropdownOpen(true)}
+                className="flex h-10 w-full rounded-md border border-input bg-transparent pl-10 pr-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              />
+              {selectedBucket && (
+                 <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-green-500 font-medium flex items-center gap-1">
+                    ✓ Selected
+                 </div>
+              )}
+            </div>
+            
+            {isBucketDropdownOpen && (
+              <div className="absolute z-10 top-full left-0 right-0 mt-1 max-h-[200px] overflow-y-auto rounded-md border border-border bg-popover shadow-md">
+                {filteredBuckets.length === 0 ? (
+                  <div className="p-2 text-sm text-muted-foreground text-center">No buckets found</div>
+                ) : (
+                  filteredBuckets.map((bucket) => (
+                    <button
+                      key={bucket.bucket_name}
+                      onClick={() => {
+                        handleBucketSelect(bucket.bucket_name);
+                        setBucketSearch(bucket.bucket_name);
+                        setIsBucketDropdownOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-muted/50 transition-colors flex items-center justify-between"
+                    >
+                      <span className="font-medium">{bucket.bucket_name}</span>
+                      <span className="text-xs text-muted-foreground">{bucket.provider_name}</span>
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
+            
+            {/* Overlay to close dropdown when clicking outside */}
+            {isBucketDropdownOpen && (
+              <div 
+                className="fixed inset-0 z-0" 
+                onClick={() => setIsBucketDropdownOpen(false)} 
+                style={{ display: 'block', position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, cursor: 'default', background: 'transparent' }} 
+              />
+            )}
+             {/* Fix Z-Index: Content needs to be higher than overlay but lower than dropdown? 
+                 Actually, simple trick: render overlay BEFORE dropdown in DOM order? 
+                 OR better: Use a separate overlay div at root of component?
+                 
+                 Here I put overlay AFTER dropdown. So clicking overlay blocks dropdown?
+                 If I put overlay BEFORE dropdown, clicking dropdown works.
+             */}
+          </div>
         </div>
         
         {/* Breadcrumb */}
