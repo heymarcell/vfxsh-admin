@@ -245,7 +245,6 @@ export default function Permissions() {
                       <option value="none">Remove</option>
                       <option value="read">Read</option>
                       <option value="write">Write</option>
-                      <option value="admin">Admin</option>
                     </select>
                   </div>
                 ))}
