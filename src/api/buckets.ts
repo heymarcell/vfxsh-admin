@@ -8,7 +8,7 @@ export function useBuckets() {
   return useQuery({
     queryKey: ["buckets"],
     queryFn: async () => {
-      const { data } = await api.get<{ buckets: BucketMapping[] }>("/admin/buckets");
+      const { data } = await api.get<{ buckets: BucketMapping[] }>("/buckets");
       return data.buckets;
     },
   });
@@ -20,7 +20,7 @@ export function useCreateBucket() {
 
   return useMutation({
     mutationFn: async (input: CreateBucketRequest) => {
-      const { data } = await api.post("/admin/buckets", input);
+      const { data } = await api.post("/buckets", input);
       return data;
     },
     onSuccess: () => {
@@ -35,7 +35,7 @@ export function useDeleteBucket() {
 
   return useMutation({
     mutationFn: async (name: string) => {
-      await api.delete(`/admin/buckets/${name}`);
+      await api.delete(`/buckets/${name}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["buckets"] });

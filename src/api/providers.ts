@@ -8,7 +8,7 @@ export function useProviders() {
   return useQuery({
     queryKey: ["providers"],
     queryFn: async () => {
-      const { data } = await api.get<{ providers: BucketProvider[] }>("/admin/providers");
+      const { data } = await api.get<{ providers: BucketProvider[] }>("/providers");
       return data.providers;
     },
   });
@@ -20,7 +20,7 @@ export function useCreateProvider() {
 
   return useMutation({
     mutationFn: async (input: CreateProviderRequest) => {
-      const { data } = await api.post("/admin/providers", input);
+      const { data } = await api.post("/providers", input);
       return data;
     },
     onSuccess: () => {
@@ -35,7 +35,7 @@ export function useUpdateProvider() {
 
   return useMutation({
     mutationFn: async ({ id, ...input }: UpdateProviderRequest & { id: string }) => {
-      const { data } = await api.put(`/admin/providers/${id}`, input);
+      const { data } = await api.put(`/providers/${id}`, input);
       return data;
     },
     onSuccess: () => {
@@ -50,7 +50,7 @@ export function useDeleteProvider() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      await api.delete(`/admin/providers/${id}`);
+      await api.delete(`/providers/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["providers"] });

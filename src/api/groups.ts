@@ -13,7 +13,7 @@ export function useGroups() {
   return useQuery({
     queryKey: ["groups"],
     queryFn: async () => {
-      const { data } = await api.get<{ groups: Group[] }>("/admin/groups");
+      const { data } = await api.get<{ groups: Group[] }>("/groups");
       return data.groups;
     },
   });
@@ -25,7 +25,7 @@ export function useGroup(id: string) {
   return useQuery({
     queryKey: ["groups", id],
     queryFn: async () => {
-      const { data } = await api.get<Group>(`/admin/groups/${id}`);
+      const { data } = await api.get<Group>(`/groups/${id}`);
       return data;
     },
     enabled: !!id,
@@ -38,7 +38,7 @@ export function useCreateGroup() {
 
   return useMutation({
     mutationFn: async (input: CreateGroupRequest) => {
-      const { data } = await api.post("/admin/groups", input);
+      const { data } = await api.post("/groups", input);
       return data;
     },
     onSuccess: () => {
@@ -54,7 +54,7 @@ export function useAddGroupMember() {
   return useMutation({
     mutationFn: async ({ groupId, userId }: { groupId: string; userId: string }) => {
       const input: AddGroupMemberRequest = { userId };
-      await api.post(`/admin/groups/${groupId}/members`, input);
+      await api.post(`/groups/${groupId}/members`, input);
     },
     onSuccess: (_, { groupId }) => {
       queryClient.invalidateQueries({ queryKey: ["groups", groupId] });
@@ -69,7 +69,7 @@ export function useRemoveGroupMember() {
 
   return useMutation({
     mutationFn: async ({ groupId, userId }: { groupId: string; userId: string }) => {
-      await api.delete(`/admin/groups/${groupId}/members/${userId}`);
+      await api.delete(`/groups/${groupId}/members/${userId}`);
     },
     onSuccess: (_, { groupId }) => {
       queryClient.invalidateQueries({ queryKey: ["groups", groupId] });
@@ -84,7 +84,7 @@ export function useGrantGroupAccess() {
 
   return useMutation({
     mutationFn: async ({ groupId, ...input }: GrantGroupAccessRequest & { groupId: string }) => {
-      await api.post(`/admin/groups/${groupId}/access`, input);
+      await api.post(`/groups/${groupId}/access`, input);
     },
     onSuccess: (_, { groupId }) => {
       queryClient.invalidateQueries({ queryKey: ["groups", groupId] });

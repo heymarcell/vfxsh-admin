@@ -8,37 +8,37 @@ export function useUsers() {
   return useQuery({
     queryKey: ["users"],
     queryFn: async () => {
-      const { data } = await api.get<{ users: ClerkUser[] }>("/admin/users");
-      // Filter out users without email addresses to be safe
-      return data.users.filter(u => u.email_addresses?.length > 0);
+      // In a real app this would probably be paginated
+      const { data } = await api.get<{ users: ClerkUser[] }>("/users");
+      return data.users;
     },
   });
 }
 
 export function useUserAcl(userId: string) {
   const api = useApiClient();
-
+  
   return useQuery({
-    queryKey: ["users", userId, "acl"],
+    queryKey: ["userAcl", userId],
     queryFn: async () => {
-      const { data } = await api.get<{ acl: UserAcl }>(`/admin/users/${userId}/acl`);
-      return data.acl;
+      const { data } = await api.get<UserAcl>(`/users/${userId}/acl`);
+      return data;
     },
     enabled: !!userId,
   });
 }
 
 export function useUpdateUserAcl() {
-  const queryClient = useQueryClient();
   const api = useApiClient();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async ({ userId, acl }: { userId: string; acl: UserAcl }) => {
-      await api.put(`/admin/users/${userId}/acl`, acl);
+      const { data } = await api.put(`/users/${userId}/acl`, acl);
+      return data;
     },
-    onSuccess: (_, { userId }) => {
-      queryClient.invalidateQueries({ queryKey: ["users", userId, "acl"] });
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["userAcl", variables.userId] });
     },
   });
 }
-

@@ -15,7 +15,7 @@ export function useAccessKeys() {
   return useQuery({
     queryKey: ["keys"],
     queryFn: async () => {
-      const { data } = await api.get<{ keys: S3AccessKey[] }>("/admin/keys");
+      const { data } = await api.get<{ keys: S3AccessKey[] }>("/keys");
       return data.keys;
     },
   });
@@ -27,7 +27,7 @@ export function useCreateAccessKey() {
 
   return useMutation({
     mutationFn: async (input: CreateKeyRequest) => {
-      const { data } = await api.post<S3AccessKey>("/admin/keys", input);
+      const { data } = await api.post<S3AccessKey>("/keys", input);
       return data;
     },
     onSuccess: () => {
@@ -42,7 +42,7 @@ export function useDeleteAccessKey() {
 
   return useMutation({
     mutationFn: async (keyId: string) => {
-      await api.delete(`/admin/keys/${keyId}`);
+      await api.delete(`/keys/${keyId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["keys"] });
