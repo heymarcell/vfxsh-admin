@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+/* Custom theme extensions */
+@theme {
+  --color-slate-850: #1a1f2e;
+}
+
+body {
+  background-color: var(--color-slate-900);
+  color: white;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
