@@ -8,7 +8,8 @@ import {
   LayoutDashboard,
   Box,
   Group,
-  Shield
+  Shield,
+  UserCog
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { ModeToggle } from "./ModeToggle";
@@ -21,6 +22,7 @@ const navItems = [
   { path: "/keys", label: "Access Keys", icon: Key },
   { path: "/groups", label: "Groups", icon: Group },
   { path: "/users", label: "Users", icon: Users },
+  { path: "/members", label: "Members", icon: UserCog },
   { path: "/permissions", label: "Permissions", icon: Shield },
 ];
 

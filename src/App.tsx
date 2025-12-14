@@ -8,6 +8,7 @@ import Keys from "./pages/Keys";
 import Users from "./pages/Users";
 import Groups from "./pages/Groups";
 import Permissions from "./pages/Permissions";
+import Members from "./pages/Members";
 import { OrganizationProvider } from "./context/OrganizationContext";
 
 
@@ -27,6 +28,7 @@ export default function App() {
               <Route path="/groups" element={<Groups />} />
               <Route path="/keys" element={<Keys />} />
               <Route path="/users" element={<Users />} />
+              <Route path="/members" element={<Members />} />
               <Route path="/permissions" element={<Permissions />} />
             </Routes>
           </Layout>
