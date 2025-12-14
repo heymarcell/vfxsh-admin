@@ -81,6 +81,23 @@ export function useRemoveGroupMember() {
   });
 }
 
+export function useBulkAddGroupMembers() {
+  const api = useApiClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ groupId, emails }: { groupId: string; emails: string[] }) => {
+      const { data } = await api.post<{ added: number; skipped: number; total: number }>(`/groups/${groupId}/members/bulk`, { emails });
+      return data;
+    },
+    onSuccess: (_, { groupId }) => {
+      queryClient.invalidateQueries({ queryKey: ["groups", groupId] });
+      queryClient.invalidateQueries({ queryKey: ["groups"] });
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+    },
+  });
+}
+
 export function useGrantGroupAccess() {
   const api = useApiClient();
   const queryClient = useQueryClient();
