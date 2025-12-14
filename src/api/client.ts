@@ -26,6 +26,10 @@ export function useApiClient() {
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    const orgId = localStorage.getItem('vfxsh_org_id');
+    if (orgId) {
+      config.headers['X-Organization-ID'] = orgId;
+    }
     return config;
   });
 

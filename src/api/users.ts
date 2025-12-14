@@ -42,3 +42,18 @@ export function useUpdateUserAcl() {
     },
   });
 }
+
+export function useInviteUser() {
+  const api = useApiClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ email, role }: { email: string; role: string }) => {
+      const { data } = await api.post('/organization/members', { email, role });
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+    },
+  });
+}

@@ -8,6 +8,7 @@ import Keys from "./pages/Keys";
 import Users from "./pages/Users";
 import Groups from "./pages/Groups";
 import Permissions from "./pages/Permissions";
+import { OrganizationProvider } from "./context/OrganizationContext";
 
 
 export default function App() {
@@ -17,17 +18,19 @@ export default function App() {
         <RedirectToSignIn />
       </SignedOut>
       <SignedIn>
-        <Layout>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/providers" element={<Providers />} />
-            <Route path="/buckets" element={<Buckets />} />
-            <Route path="/groups" element={<Groups />} />
-            <Route path="/keys" element={<Keys />} />
-            <Route path="/users" element={<Users />} />
-            <Route path="/permissions" element={<Permissions />} />
-          </Routes>
-        </Layout>
+        <OrganizationProvider>
+          <Layout>
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/providers" element={<Providers />} />
+              <Route path="/buckets" element={<Buckets />} />
+              <Route path="/groups" element={<Groups />} />
+              <Route path="/keys" element={<Keys />} />
+              <Route path="/users" element={<Users />} />
+              <Route path="/permissions" element={<Permissions />} />
+            </Routes>
+          </Layout>
+        </OrganizationProvider>
       </SignedIn>
     </>
   );

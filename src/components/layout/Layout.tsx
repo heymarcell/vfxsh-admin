@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { ModeToggle } from "./ModeToggle";
+import { OrgSwitcher } from "./OrgSwitcher";
 
 const navItems = [
   { path: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -72,6 +73,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </h2>
           </div>
           <div className="flex items-center gap-4">
+            <OrgSwitcher />
             <ModeToggle />
             <UserButton 
               afterSignOutUrl="/" 
