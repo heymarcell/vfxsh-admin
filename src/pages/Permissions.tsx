@@ -6,10 +6,9 @@ import { useUserAclMatrix, useGroupAclMatrix, useSetUserBucketPermission, useSet
 import Button from "../components/ui/Button";
 import { ChevronRight, Shield, Users, Group, Search, Plus, X } from "lucide-react";
 
-type PermissionLevel = "none" | "read" | "write" | "admin";
+type PermissionLevel = "none" | "read" | "write";
 
 const PERMISSION_COLORS: Record<PermissionLevel, string> = {
-  admin: "bg-purple-500/20 text-purple-400 border-purple-500/50",
   write: "bg-blue-500/20 text-blue-400 border-blue-500/50",
   read: "bg-green-500/20 text-green-400 border-green-500/50",
   none: "bg-muted/30 text-muted-foreground border-border",
@@ -19,6 +18,7 @@ export default function Permissions() {
   const [selectedBucket, setSelectedBucket] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [addingAccess, setAddingAccess] = useState(false);
+  const [bucketSearch, setBucketSearch] = useState("");
 
   const { data: buckets } = useBuckets();
   const { data: users } = useUsers();
@@ -123,13 +123,23 @@ export default function Permissions() {
         <div className="lg:col-span-1">
           <div className="rounded-xl border border-border bg-card overflow-hidden">
             <div className="p-4 border-b border-border bg-muted/30">
-              <h2 className="font-semibold flex items-center gap-2">
+              <h2 className="font-semibold flex items-center gap-2 mb-3">
                 <Shield className="h-4 w-4" />
                 Buckets
               </h2>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Filter buckets..."
+                  value={bucketSearch}
+                  onChange={(e) => setBucketSearch(e.target.value)}
+                  className="w-full pl-9 pr-3 py-1.5 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
             </div>
             <div className="divide-y divide-border max-h-[500px] overflow-y-auto">
-              {buckets?.map((bucket) => {
+              {buckets?.filter(b => b.bucket_name.toLowerCase().includes(bucketSearch.toLowerCase())).map((bucket) => {
                 const accessCount = (
                   Object.values(userAcls || {}).filter(b => b[bucket.bucket_name]).length +
                   Object.values(groupAcls || {}).filter(b => b[bucket.bucket_name]).length
