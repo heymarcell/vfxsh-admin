@@ -23,6 +23,25 @@ export interface Group {
   members_count?: number;
 }
 
+export interface GroupMember {
+  id: string;
+  email: string;
+  name: string;
+  joined_at: string;
+}
+
+export interface GroupAccess {
+  group_id: string;
+  bucket_name: string;
+  permission: string;
+}
+
+export interface GroupDetails {
+  group: Group;
+  members: GroupMember[];
+  access: GroupAccess[];
+}
+
 export interface S3AccessKey {
   access_key_id: string;
   secret_key?: string; // ONLY returned on creation
@@ -34,8 +53,11 @@ export interface S3AccessKey {
 
 export interface ClerkUser {
   id: string;
-  email_addresses: { email_address: string }[];
-  last_sign_in_at: number | null;
+  email: string;
+  name?: string;
+  role?: string;
+  created_at?: string;
+  last_sign_in_at: number | string | null;
 }
 
 export interface UserAcl {
@@ -83,4 +105,3 @@ export interface GrantGroupAccessRequest {
   bucket: string;
   permission: "read" | "write" | "admin";
 }
-

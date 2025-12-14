@@ -31,7 +31,7 @@ export default function UserList() {
               <TableRow key={user.id}>
                 <TableCell className="font-mono text-xs text-muted-foreground">{user.id}</TableCell>
                 <TableCell className="font-medium">
-                  {user.email_addresses?.[0]?.email_address ?? "No Email"}
+                  {user.email || "No Email"}
                 </TableCell>
                 <TableCell className="text-muted-foreground text-xs">
                   {user.last_sign_in_at

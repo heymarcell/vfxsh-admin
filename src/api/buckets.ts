@@ -43,3 +43,17 @@ export function useDeleteBucket() {
   });
 }
 
+export function useUpdateBucket() {
+  const api = useApiClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ bucket_name, ...input }: { bucket_name: string; provider_id?: string; remote_bucket_name?: string }) => {
+      const { data } = await api.put(`/buckets/${bucket_name}`, input);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["buckets"] });
+    },
+  });
+}

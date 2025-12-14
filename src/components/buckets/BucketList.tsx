@@ -1,11 +1,15 @@
-import { Trash2 } from "lucide-react";
+import { Trash2, Pencil } from "lucide-react";
+import { useState } from "react";
 import { useBuckets, useDeleteBucket } from "../../api/buckets";
 import Table, { TableHeader, TableBody, TableRow, TableHead, TableCell } from "../ui/Table";
 import Button from "../ui/Button";
+import BucketEditModal from "./BucketEditModal";
+import type { BucketMapping } from "../../types/api";
 
 export default function BucketList() {
   const { data: buckets, isLoading, error } = useBuckets();
   const deleteBucket = useDeleteBucket();
+  const [editingBucket, setEditingBucket] = useState<BucketMapping | null>(null);
 
   const handleDelete = (name: string) => {
     if (confirm("Delete this bucket mapping? This cannot be undone.")) {
@@ -31,41 +35,59 @@ export default function BucketList() {
   }
 
   return (
-    <div className="rounded-lg border border-border overflow-hidden bg-card">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Virtual Bucket</TableHead>
-            <TableHead>Provider</TableHead>
-            <TableHead>Remote Bucket</TableHead>
-            <TableHead className="w-[80px]"></TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {buckets.map((bucket) => (
-            <TableRow key={bucket.bucket_name}>
-              <TableCell className="font-mono font-medium text-primary">
-                {bucket.bucket_name}
-              </TableCell>
-              <TableCell className="text-muted-foreground">{bucket.provider_name}</TableCell>
-              <TableCell className="font-mono text-xs text-muted-foreground">
-                {bucket.remote_bucket_name}
-              </TableCell>
-              <TableCell className="text-right">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleDelete(bucket.bucket_name)}
-                  disabled={deleteBucket.isPending}
-                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                >
-                  <Trash2 size={16} />
-                </Button>
-              </TableCell>
+    <>
+      <div className="rounded-lg border border-border overflow-hidden bg-card">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Virtual Bucket</TableHead>
+              <TableHead>Provider</TableHead>
+              <TableHead>Remote Bucket</TableHead>
+              <TableHead className="w-[120px]"></TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+          </TableHeader>
+          <TableBody>
+            {buckets.map((bucket) => (
+              <TableRow key={bucket.bucket_name}>
+                <TableCell className="font-mono font-medium text-primary">
+                  {bucket.bucket_name}
+                </TableCell>
+                <TableCell className="text-muted-foreground">{bucket.provider_name}</TableCell>
+                <TableCell className="font-mono text-xs text-muted-foreground">
+                  {bucket.remote_bucket_name}
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className="flex gap-1 justify-end">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setEditingBucket(bucket)}
+                      className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                    >
+                      <Pencil size={16} />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDelete(bucket.bucket_name)}
+                      disabled={deleteBucket.isPending}
+                      className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                    >
+                      <Trash2 size={16} />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      <BucketEditModal
+        bucket={editingBucket}
+        isOpen={!!editingBucket}
+        onClose={() => setEditingBucket(null)}
+      />
+    </>
   );
 }

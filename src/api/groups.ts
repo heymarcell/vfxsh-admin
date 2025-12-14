@@ -1,10 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useApiClient } from "./client";
 import type { 
-  Group, 
   CreateGroupRequest, 
   AddGroupMemberRequest, 
-  GrantGroupAccessRequest 
+  GrantGroupAccessRequest,
+  GroupDetails,
+  Group
 } from "../types/api";
 
 export function useGroups() {
@@ -25,7 +26,7 @@ export function useGroup(id: string) {
   return useQuery({
     queryKey: ["groups", id],
     queryFn: async () => {
-      const { data } = await api.get<Group>(`/groups/${id}`);
+      const { data } = await api.get<GroupDetails>(`/groups/${id}`);
       return data;
     },
     enabled: !!id,

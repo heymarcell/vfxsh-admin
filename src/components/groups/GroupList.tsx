@@ -1,10 +1,13 @@
-import { MoreVertical, Shield, Users } from "lucide-react";
+import { Shield, Users, UserCog } from "lucide-react";
+import { useState } from "react";
 import { useGroups } from "../../api/groups";
 import Table, { TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/Table";
 import Button from "../ui/Button";
+import GroupManageModal from "./GroupManageModal";
 
 export default function GroupList() {
   const { data: groups, isLoading } = useGroups();
+  const [managingGroupId, setManagingGroupId] = useState<string | null>(null);
 
   if (isLoading) {
     return <div>Loading groups...</div>;
@@ -45,8 +48,13 @@ export default function GroupList() {
                   </div>
                 </TableCell>
                 <TableCell>
-                  <Button variant="ghost" size="icon">
-                    <MoreVertical className="h-4 w-4" />
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={() => setManagingGroupId(group.id)}
+                    title="Manage Members"
+                  >
+                    <UserCog className="h-4 w-4" />
                   </Button>
                 </TableCell>
               </TableRow>
@@ -54,6 +62,12 @@ export default function GroupList() {
           )}
         </TableBody>
       </Table>
+      
+      <GroupManageModal 
+        groupId={managingGroupId}
+        isOpen={!!managingGroupId}
+        onClose={() => setManagingGroupId(null)}
+      />
     </div>
   );
 }

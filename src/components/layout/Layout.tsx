@@ -6,7 +6,8 @@ import {
   Users,
   FolderOpen,
   LayoutDashboard,
-  Box
+  Box,
+  Group
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { ModeToggle } from "./ModeToggle";
@@ -16,6 +17,7 @@ const navItems = [
   { path: "/providers", label: "Providers", icon: Database },
   { path: "/buckets", label: "Buckets", icon: FolderOpen },
   { path: "/keys", label: "Access Keys", icon: Key },
+  { path: "/groups", label: "Groups", icon: Group },
   { path: "/users", label: "Users", icon: Users },
 ];
 

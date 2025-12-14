@@ -7,7 +7,11 @@ import Button from "../ui/Button";
 import Input from "../ui/Input";
 
 const bucketSchema = z.object({
-  bucket_name: z.string().min(1, "Virtual bucket name is required"),
+  bucket_name: z
+    .string()
+    .min(3, "Bucket name must be at least 3 characters")
+    .max(63, "Bucket name must be at most 63 characters")
+    .regex(/^[a-z0-9.-]+$/, "Bucket name can only contain lowercase letters, numbers, dots, and hyphens"),
   provider_id: z.string().min(1, "Provider is required"),
   remote_bucket_name: z.string().min(1, "Remote bucket name is required"),
 });
