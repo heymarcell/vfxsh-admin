@@ -41,10 +41,14 @@ export function OrgSwitcher() {
               <div
                 key={org.id}
                 onClick={() => {
-                  setCurrentOrg(org);
-                  setOpen(false);
-                  // Optional: Refresh page if context change doesn't trigger deep refresh
-                  // window.location.reload(); 
+                  if (currentOrg?.id !== org.id) {
+                    setCurrentOrg(org);
+                    setOpen(false);
+                    // Reload page to refresh all data with new org context
+                    window.location.reload();
+                  } else {
+                    setOpen(false);
+                  }
                 }}
                 className={cn(
                   "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 cursor-pointer",

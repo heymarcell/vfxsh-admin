@@ -1,15 +1,17 @@
 import clsx from "clsx";
 
-type RoleType = 'owner' | 'member' | 'viewer';
+type RoleType = 'owner' | 'admin' | 'member' | 'viewer';
 
 const roleStyles: Record<RoleType, string> = {
   owner: "bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-300 border-purple-500/30",
+  admin: "bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-300 border-amber-500/30",
   member: "bg-blue-500/20 text-blue-300 border-blue-500/30",
   viewer: "bg-zinc-500/20 text-zinc-400 border-zinc-500/30",
 };
 
 const roleLabels: Record<RoleType, string> = {
   owner: "Owner",
+  admin: "Admin",
   member: "Member",
   viewer: "Viewer",
 };

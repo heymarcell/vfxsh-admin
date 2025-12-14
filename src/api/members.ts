@@ -5,7 +5,7 @@ export interface OrgMember {
   user_id: string;
   email: string;
   name: string | null;
-  role_name: 'owner' | 'member' | 'viewer';
+  role_name: 'owner' | 'admin' | 'member' | 'viewer';
   created_at: string;
 }
 
