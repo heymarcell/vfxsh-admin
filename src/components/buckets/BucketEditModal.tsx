@@ -38,8 +38,8 @@ export default function BucketEditModal({ bucket, isOpen, onClose }: BucketEditM
   useEffect(() => {
     if (bucket) {
       reset({
-        provider_id: bucket.provider_id,
-        remote_bucket_name: bucket.remote_bucket_name,
+        provider_id: bucket.provider_id || '',
+        remote_bucket_name: bucket.remote_bucket_name || '',
       });
     }
   }, [bucket, reset]);

@@ -11,9 +11,36 @@ export interface BucketProvider {
 
 export interface BucketMapping {
   bucket_name: string; // The URL subdomain
-  provider_id: string;
-  remote_bucket_name: string;
+  provider_id: string | null; // null for virtual buckets
+  remote_bucket_name?: string; // undefined for virtual buckets
   provider_name?: string; // Joined field
+  bucket_type: 'standard' | 'virtual';
+  source_count?: number; // For virtual buckets only
+  created_at?: string;
+}
+
+export interface VirtualBucketSource {
+  id: number;
+  virtual_bucket_name: string;
+  source_bucket_name: string;
+  source_prefix: string;
+  display_name?: string;
+  sort_order: number;
+  provider_id?: string;
+  provider_name?: string;
+  mount_point?: string;
+}
+
+export interface VirtualBucketDetails {
+  bucket: BucketMapping;
+  sources: VirtualBucketSource[];
+}
+
+export interface BucketBrowseResponse {
+  folders: { name: string; prefix: string }[];
+  files: { key: string; size: number; lastModified: string }[];
+  prefix: string;
+  isTruncated: boolean;
 }
 
 export interface Group {
@@ -88,8 +115,17 @@ export interface UpdateProviderRequest {
 
 export interface CreateBucketRequest {
   bucket_name: string;
-  provider_id: string;
-  remote_bucket_name?: string;
+  bucket_type?: 'standard' | 'virtual';
+  provider_id?: string; // Required for standard buckets
+  remote_bucket_name?: string; // Optional for standard buckets
+}
+
+export interface AddVirtualSourceRequest {
+  source_bucket_name: string;
+  source_prefix?: string;
+  display_name?: string;
+  sort_order?: number;
+  mount_point?: string;
 }
 
 export interface CreateGroupRequest {
@@ -105,3 +141,4 @@ export interface GrantGroupAccessRequest {
   bucket: string;
   permission: "read" | "write" | "admin";
 }
+
