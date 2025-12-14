@@ -7,7 +7,8 @@ import {
   FolderOpen,
   LayoutDashboard,
   Box,
-  Group
+  Group,
+  Shield
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { ModeToggle } from "./ModeToggle";
@@ -19,6 +20,7 @@ const navItems = [
   { path: "/keys", label: "Access Keys", icon: Key },
   { path: "/groups", label: "Groups", icon: Group },
   { path: "/users", label: "Users", icon: Users },
+  { path: "/permissions", label: "Permissions", icon: Shield },
 ];
 
 export default function Layout({ children }: { children: React.ReactNode }) {

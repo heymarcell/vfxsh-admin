@@ -7,6 +7,7 @@ import Buckets from "./pages/Buckets";
 import Keys from "./pages/Keys";
 import Users from "./pages/Users";
 import Groups from "./pages/Groups";
+import Permissions from "./pages/Permissions";
 
 
 export default function App() {
@@ -24,6 +25,7 @@ export default function App() {
             <Route path="/groups" element={<Groups />} />
             <Route path="/keys" element={<Keys />} />
             <Route path="/users" element={<Users />} />
+            <Route path="/permissions" element={<Permissions />} />
           </Routes>
         </Layout>
       </SignedIn>
