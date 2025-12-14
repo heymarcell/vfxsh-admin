@@ -1,97 +1,102 @@
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useCreateProvider } from "../../api/providers";
-import Modal from "../ui/Modal";
-import Input from "../ui/Input";
 import Button from "../ui/Button";
+import Input from "../ui/Input";
 
 const providerSchema = z.object({
-  id: z.string().min(1, "ID is required").regex(/^[a-z0-9-]+$/, "Only lowercase letters, numbers, and hyphens"),
   name: z.string().min(1, "Name is required"),
+  description: z.string().optional(),
+  type: z.enum(["s3", "r2", "minio", "gcs"]),
   endpoint_url: z.string().url("Must be a valid URL"),
+  region: z.string().min(1, "Region is required"),
   access_key_id: z.string().min(1, "Access Key ID is required"),
   secret_access_key: z.string().min(1, "Secret Access Key is required"),
-  region: z.string().optional(),
 });
 
-type ProviderFormData = z.infer<typeof providerSchema>;
+type ProviderFormValues = z.infer<typeof providerSchema>;
 
-interface ProviderFormProps {
-  onClose: () => void;
-}
-
-export default function ProviderForm({ onClose }: ProviderFormProps) {
+export default function ProviderForm({ onSuccess }: { onSuccess?: () => void }) {
   const createProvider = useCreateProvider();
-
+  
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<ProviderFormData>({
+    formState: { errors },
+    reset,
+  } = useForm<ProviderFormValues>({
     resolver: zodResolver(providerSchema),
     defaultValues: {
-      region: "auto",
-    },
+      type: "s3"
+    }
   });
 
-  const onSubmit = async (data: ProviderFormData) => {
-    try {
-      await createProvider.mutateAsync(data);
-      onClose();
-    } catch (error) {
-      console.error("Failed to create provider:", error);
-    }
+  const onSubmit = (data: ProviderFormValues) => {
+    createProvider.mutate(data, {
+      onSuccess: () => {
+        reset();
+        onSuccess?.();
+      },
+    });
   };
 
   return (
-    <Modal isOpen={true} onClose={onClose} title="Add Storage Provider">
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <Input
+        label="Name"
+        placeholder="e.g., Primary Storage"
+        error={errors.name?.message}
+        {...register("name")}
+      />
+      
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium text-foreground">Type</label>
+          <select
+            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            {...register("type")}
+          >
+            <option value="s3">AWS S3</option>
+            <option value="r2">Cloudflare R2</option>
+            <option value="minio">MinIO</option>
+            <option value="gcs">Google Cloud Storage</option>
+          </select>
+        </div>
+        
         <Input
-          label="Provider ID"
-          placeholder="e.g., cloudflare-r2"
-          error={errors.id?.message}
-          {...register("id")}
+          label="Region"
+          placeholder="e.g., us-east-1"
+          error={errors.region?.message}
+          {...register("region")}
         />
-        <Input
-          label="Display Name"
-          placeholder="e.g., Cloudflare R2"
-          error={errors.name?.message}
-          {...register("name")}
-        />
-        <Input
-          label="Endpoint URL"
-          placeholder="https://..."
-          error={errors.endpoint_url?.message}
-          {...register("endpoint_url")}
-        />
+      </div>
+
+      <Input
+        label="Endpoint URL"
+        placeholder="https://..."
+        error={errors.endpoint_url?.message}
+        {...register("endpoint_url")}
+      />
+
+      <div className="grid grid-cols-2 gap-4">
         <Input
           label="Access Key ID"
           error={errors.access_key_id?.message}
           {...register("access_key_id")}
         />
+        
         <Input
           label="Secret Access Key"
           type="password"
           error={errors.secret_access_key?.message}
           {...register("secret_access_key")}
         />
-        <Input
-          label="Region"
-          placeholder="auto"
-          error={errors.region?.message}
-          {...register("region")}
-        />
+      </div>
 
-        <div className="flex justify-end gap-3 pt-4">
-          <Button type="button" variant="secondary" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Creating..." : "Create Provider"}
-          </Button>
-        </div>
-      </form>
-    </Modal>
+      <Button type="submit" isLoading={createProvider.isPending} className="w-full">
+        Create Provider
+      </Button>
+    </form>
   );
 }

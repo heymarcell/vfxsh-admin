@@ -1,6 +1,7 @@
 import { Trash2 } from "lucide-react";
 import { useBuckets, useDeleteBucket } from "../../api/buckets";
 import Table, { TableHeader, TableBody, TableRow, TableHead, TableCell } from "../ui/Table";
+import Button from "../ui/Button";
 
 export default function BucketList() {
   const { data: buckets, isLoading, error } = useBuckets();
@@ -13,68 +14,57 @@ export default function BucketList() {
   };
 
   if (isLoading) {
-    return (
-      <div className="bg-slate-800 rounded-lg border border-slate-700 p-6 animate-pulse">
-        <div className="h-4 bg-slate-700 rounded w-1/4 mb-4" />
-        <div className="space-y-3">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-8 bg-slate-700 rounded" />
-          ))}
-        </div>
-      </div>
-    );
+    return <div className="p-8 text-center text-muted-foreground">Loading buckets...</div>;
   }
 
   if (error) {
-    return (
-      <div className="text-center py-12 text-red-400">
-        <p>Failed to load buckets</p>
-      </div>
-    );
+    return <div className="p-8 text-center text-destructive">Failed to load buckets.</div>;
   }
 
   if (!buckets?.length) {
     return (
-      <div className="text-center py-12 text-slate-400">
-        <p>No bucket mappings configured yet</p>
-        <p className="text-sm text-slate-500 mt-1">Create your first bucket mapping to get started</p>
+      <div className="rounded-md border border-dashed border-border p-12 text-center">
+        <h3 className="text-lg font-medium">No Bucket Mappings</h3>
+        <p className="text-sm text-muted-foreground mt-1">Create a bucket mapping to expose storage.</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
+    <div className="rounded-lg border border-border overflow-hidden bg-card">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Bucket Name</TableHead>
+            <TableHead>Virtual Bucket</TableHead>
             <TableHead>Provider</TableHead>
             <TableHead>Remote Bucket</TableHead>
-            <TableHead>Created</TableHead>
-            <TableHead className="w-16"></TableHead>
+            <TableHead>Date Created</TableHead>
+            <TableHead className="w-[80px]"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {buckets.map((bucket) => (
             <TableRow key={bucket.bucket_name}>
-              <TableCell className="font-mono font-medium text-white">
+              <TableCell className="font-mono font-medium text-primary">
                 {bucket.bucket_name}
               </TableCell>
-              <TableCell>{bucket.provider_name}</TableCell>
-              <TableCell className="font-mono text-slate-400">
+              <TableCell className="text-muted-foreground">{bucket.provider_name}</TableCell>
+              <TableCell className="font-mono text-xs text-muted-foreground">
                 {bucket.remote_bucket_name}
               </TableCell>
-              <TableCell>
+              <TableCell className="text-muted-foreground text-xs">
                 {new Date(bucket.created_at).toLocaleDateString()}
               </TableCell>
-              <TableCell>
-                <button
+              <TableCell className="text-right">
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={() => handleDelete(bucket.bucket_name)}
                   disabled={deleteBucket.isPending}
-                  className="text-red-400 hover:text-red-300 p-1 disabled:opacity-50"
+                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
                 >
                   <Trash2 size={16} />
-                </button>
+                </Button>
               </TableCell>
             </TableRow>
           ))}

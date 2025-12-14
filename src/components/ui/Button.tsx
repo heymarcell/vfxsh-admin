@@ -1,33 +1,43 @@
 import { forwardRef, type ButtonHTMLAttributes } from "react";
+import { cn } from "../../lib/utils";
+import { Loader2 } from "lucide-react";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "danger" | "ghost";
-  size?: "sm" | "md" | "lg";
+  variant?: "primary" | "secondary" | "danger" | "ghost" | "outline";
+  size?: "sm" | "md" | "lg" | "icon";
+  isLoading?: boolean;
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className = "", variant = "primary", size = "md", children, ...props }, ref) => {
-    const baseStyles = "inline-flex items-center justify-center rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed";
-    
+  ({ className = "", variant = "primary", size = "md", isLoading, children, disabled, ...props }, ref) => {
     const variants = {
-      primary: "bg-purple-600 hover:bg-purple-700 text-white",
-      secondary: "bg-slate-700 hover:bg-slate-600 text-white",
-      danger: "bg-red-600 hover:bg-red-700 text-white",
-      ghost: "text-slate-400 hover:text-white hover:bg-slate-700",
+      primary: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm",
+      secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+      danger: "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-sm",
+      ghost: "text-foreground hover:bg-accent hover:text-accent-foreground",
+      outline: "border border-input bg-transparent hover:bg-accent hover:text-accent-foreground",
     };
     
     const sizes = {
-      sm: "px-3 py-1.5 text-sm gap-1.5",
-      md: "px-4 py-2 text-sm gap-2",
-      lg: "px-6 py-3 text-base gap-2",
+      sm: "h-8 px-3 text-xs gap-1.5 rounded-md",
+      md: "h-9 px-4 py-2 text-sm gap-2 rounded-md",
+      lg: "h-10 px-8 text-base gap-2 rounded-md",
+      icon: "h-9 w-9 p-0 rounded-md",
     };
 
     return (
       <button
         ref={ref}
-        className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`}
+        disabled={disabled || isLoading}
+        className={cn(
+          "inline-flex items-center justify-center font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
+          variants[variant],
+          sizes[size],
+          className
+        )}
         {...props}
       >
+        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         {children}
       </button>
     );

@@ -1,6 +1,8 @@
-import { Trash2, ExternalLink } from "lucide-react";
+import { Trash2, ExternalLink, ShieldCheck, ShieldAlert } from "lucide-react";
 import { useDeleteProvider } from "../../api/providers";
 import type { Provider } from "../../types/api";
+import Card, { CardContent, CardHeader, CardFooter } from "../ui/Card";
+import Button from "../ui/Button";
 
 interface ProviderCardProps {
   provider: Provider;
@@ -16,41 +18,54 @@ export default function ProviderCard({ provider }: ProviderCardProps) {
   };
 
   return (
-    <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
-      <div className="flex justify-between items-start mb-4">
-        <div>
-          <h3 className="font-semibold text-lg">{provider.name}</h3>
-          <p className="text-slate-400 text-sm font-mono">{provider.id}</p>
+    <Card className="overflow-hidden bg-card hover:bg-muted/30 transition-colors">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <h3 className="font-semibold text-lg truncate flex-1">{provider.name}</h3>
+        {provider.enabled ? (
+          <ShieldCheck className="text-green-500 h-5 w-5" />
+        ) : (
+          <ShieldAlert className="text-yellow-500 h-5 w-5" />
+        )}
+      </CardHeader>
+      
+      <CardContent className="space-y-3 pb-3">
+        <div className="flex items-center justify-between text-sm">
+           <span className="text-muted-foreground">ID</span>
+           <code className="font-mono bg-muted px-1.5 py-0.5 rounded text-xs">{provider.id}</code>
         </div>
-        <span
-          className={`px-2 py-1 rounded text-xs font-medium ${
-            provider.enabled
-              ? "bg-green-900/50 text-green-400 border border-green-800"
-              : "bg-red-900/50 text-red-400 border border-red-800"
-          }`}
-        >
-          {provider.enabled ? "Active" : "Disabled"}
-        </span>
-      </div>
+        <div className="flex items-center justify-between text-sm">
+           <span className="text-muted-foreground">Region</span>
+           <span className="font-medium">{provider.region}</span>
+        </div>
+        <div className="flex items-center justify-between text-sm">
+           <span className="text-muted-foreground">Endpoint</span>
+           <a 
+             href={provider.endpoint_url} 
+             target="_blank" 
+             rel="noreferrer"
+             className="flex items-center gap-1 text-primary hover:underline truncate max-w-[150px]"
+           >
+             <span className="truncate">{new URL(provider.endpoint_url).hostname}</span>
+             <ExternalLink className="h-3 w-3" />
+           </a>
+        </div>
+      </CardContent>
 
-      <div className="space-y-2 text-sm text-slate-400">
-        <p className="flex items-center gap-2">
-          <ExternalLink size={14} className="flex-shrink-0" />
-          <span className="truncate">{provider.endpoint_url}</span>
-        </p>
-        <p>Region: {provider.region}</p>
-      </div>
-
-      <div className="mt-4 pt-4 border-t border-slate-700">
-        <button
-          onClick={handleDelete}
-          disabled={deleteProvider.isPending}
-          className="text-red-400 hover:text-red-300 flex items-center gap-2 text-sm disabled:opacity-50"
-        >
-          <Trash2 size={14} />
-          {deleteProvider.isPending ? "Deleting..." : "Delete"}
-        </button>
-      </div>
-    </div>
+      <CardFooter className="bg-muted/20 border-t border-border/50 flex justify-between py-3">
+         <span className="text-xs text-muted-foreground">
+           Added {new Date(provider.created_at).toLocaleDateString()}
+         </span>
+         <Button
+           variant="ghost"
+           size="sm"
+           onClick={handleDelete}
+           disabled={deleteProvider.isPending}
+           className="text-destructive hover:text-destructive hover:bg-destructive/10 h-8 px-2"
+         >
+           <Trash2 className="h-4 w-4 mr-2" />
+           Delete
+         </Button>
+      </CardFooter>
+    </Card>
   );
 }

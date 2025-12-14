@@ -1,6 +1,8 @@
 export interface Provider {
   id: string;
   name: string;
+  description?: string;
+  type: "s3" | "r2" | "minio" | "gcs";
   endpoint_url: string;
   region: string;
   enabled: boolean;
@@ -26,26 +28,27 @@ export interface AccessKey {
 }
 
 export interface UserAcl {
-  bucket_name: string;
-  permission: "read" | "write" | "admin";
-  created_at: string;
+  allowed_buckets: {
+    bucket_name: string;
+    permission: "read" | "write" | "admin";
+  }[];
 }
 
 export interface ClerkUser {
   id: string;
-  email: string | null;
-  name: string | null;
-  role: string;
-  created_at: string;
+  email_addresses: { email_address: string }[];
+  last_sign_in_at: number | null;
 }
 
 export interface CreateProviderInput {
-  id: string;
   name: string;
+  type: "s3" | "r2" | "minio" | "gcs";
+  description?: string;
   endpoint_url: string;
+  region: string;
   access_key_id: string;
   secret_access_key: string;
-  region?: string;
+  enabled?: boolean;
 }
 
 export interface CreateBucketInput {
@@ -62,7 +65,8 @@ export interface CreateKeyInput {
 
 export interface CreateKeyResponse {
   access_key_id: string;
-  secret_key: string;
+  secret_access_key: string;
+  status: string;
   name: string | null;
   user_id: string;
 }

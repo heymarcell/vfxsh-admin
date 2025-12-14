@@ -1,8 +1,10 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { ClerkProvider } from "@clerk/clerk-react";
+import { dark } from "@clerk/themes";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter } from "react-router-dom";
+import { ThemeProvider } from "./components/providers/ThemeProvider";
 import App from "./App";
 import "./index.css";
 
@@ -23,12 +25,19 @@ const queryClient = new QueryClient({
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <ClerkProvider publishableKey={clerkPubKey}>
-      <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
-      </QueryClientProvider>
+    <ClerkProvider 
+      publishableKey={clerkPubKey}
+      appearance={{
+        baseTheme: dark
+      }}
+    >
+      <ThemeProvider defaultTheme="dark" storageKey="vfx-admin-theme">
+        <QueryClientProvider client={queryClient}>
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+        </QueryClientProvider>
+      </ThemeProvider>
     </ClerkProvider>
   </React.StrictMode>
 );

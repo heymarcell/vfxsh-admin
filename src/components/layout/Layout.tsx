@@ -6,7 +6,10 @@ import {
   Users,
   FolderOpen,
   LayoutDashboard,
+  Box
 } from "lucide-react";
+import { cn } from "../../lib/utils";
+import { ModeToggle } from "./ModeToggle";
 
 const navItems = [
   { path: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -20,13 +23,18 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white">
+    <div className="min-h-screen bg-background text-foreground flex">
       {/* Sidebar */}
-      <aside className="fixed left-0 top-0 h-full w-64 bg-slate-800 border-r border-slate-700">
-        <div className="p-6">
-          <h1 className="text-xl font-bold text-purple-400">🎬 VFX Admin</h1>
+      <aside className="fixed left-0 top-0 h-full w-64 border-r border-border bg-card/50 backdrop-blur-xl z-20">
+        <div className="flex h-16 items-center border-b border-border px-6">
+          <Link to="/" className="flex items-center gap-2 font-bold text-lg">
+             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+               <Box className="h-5 w-5" />
+             </div>
+             <span>VFX Admin</span>
+          </Link>
         </div>
-        <nav className="px-4">
+        <nav className="p-4 space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
@@ -34,13 +42,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-1 transition-colors ${
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
                   isActive
-                    ? "bg-purple-600 text-white"
-                    : "text-slate-400 hover:bg-slate-700 hover:text-white"
-                }`}
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
               >
-                <Icon size={20} />
+                <Icon size={18} />
                 {item.label}
               </Link>
             );
@@ -49,14 +58,34 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Main content */}
-      <div className="ml-64">
+      <div className="ml-64 flex-1 min-h-screen flex flex-col">
         {/* Header */}
-        <header className="sticky top-0 h-16 bg-slate-800 border-b border-slate-700 flex items-center justify-end px-6 z-10">
-          <UserButton afterSignOutUrl="/" />
+        <header className="sticky top-0 z-10 h-16 border-b border-border bg-background/80 backdrop-blur-md px-6 flex items-center justify-between">
+          <div>
+            {/* Breadcrumb-ish placeholder */}
+            <h2 className="text-lg font-semibold text-foreground">
+              {navItems.find(i => i.path === location.pathname)?.label || "Dashboard"}
+            </h2>
+          </div>
+          <div className="flex items-center gap-4">
+            <ModeToggle />
+            <UserButton 
+              afterSignOutUrl="/" 
+              appearance={{
+                elements: {
+                  avatarBox: "h-8 w-8"
+                }
+              }}
+            />
+          </div>
         </header>
 
         {/* Page content */}
-        <main className="p-6">{children}</main>
+        <main className="flex-1 p-6 md:p-8 animate-in fade-in duration-300">
+           <div className="mx-auto max-w-6xl space-y-6">
+             {children}
+           </div>
+        </main>
       </div>
     </div>
   );

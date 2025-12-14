@@ -1,8 +1,10 @@
-import { Database, FolderOpen, Key, Users } from "lucide-react";
+import { Database, FolderOpen, Key, Users, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useProviders } from "../api/providers";
 import { useBuckets } from "../api/buckets";
 import { useAccessKeys } from "../api/keys";
 import { useUsers } from "../api/users";
+import Card, { CardContent, CardHeader } from "../components/ui/Card";
 
 export default function Dashboard() {
   const { data: providers } = useProviders();
@@ -12,81 +14,120 @@ export default function Dashboard() {
 
   const stats = [
     {
-      label: "Providers",
-      value: providers?.length ?? "-",
+      label: "Active Providers",
+      value: providers?.filter(p => p.enabled).length ?? 0,
+      total: providers?.length ?? 0,
       icon: Database,
-      color: "text-blue-400",
-      bgColor: "bg-blue-400/10",
+      href: "/providers",
     },
     {
-      label: "Buckets",
-      value: buckets?.length ?? "-",
+      label: "Bucket Mappings",
+      value: buckets?.length ?? 0,
       icon: FolderOpen,
-      color: "text-green-400",
-      bgColor: "bg-green-400/10",
+      href: "/buckets",
     },
     {
-      label: "Access Keys",
-      value: keys?.length ?? "-",
+      label: "Active Keys",
+      value: keys?.filter(k => k.enabled).length ?? 0,
+      total: keys?.length ?? 0,
       icon: Key,
-      color: "text-yellow-400",
-      bgColor: "bg-yellow-400/10",
+      href: "/keys",
     },
     {
-      label: "Users",
-      value: users?.length ?? "-",
+      label: "Total Users",
+      value: users?.length ?? 0,
       icon: Users,
-      color: "text-purple-400",
-      bgColor: "bg-purple-400/10",
+      href: "/users",
     },
   ];
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-muted-foreground mt-2">Overview of your VFX storage infrastructure.</p>
+      </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
-            <div
-              key={stat.label}
-              className="bg-slate-800 rounded-lg p-6 border border-slate-700"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-slate-400 text-sm">{stat.label}</p>
-                  <p className="text-3xl font-bold mt-1">{stat.value}</p>
-                </div>
-                <div className={`p-3 rounded-lg ${stat.bgColor}`}>
-                  <Icon className={stat.color} size={24} />
-                </div>
-              </div>
-            </div>
+            <Link key={stat.label} to={stat.href} className="group">
+              <Card className="transition-all hover:bg-muted/50 hover:border-primary/50">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 border-none">
+                  <span className="text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors">
+                    {stat.label}
+                  </span>
+                  <Icon className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {stat.value}
+                    {stat.total !== undefined && (
+                      <span className="text-sm font-normal text-muted-foreground ml-1">
+                        / {stat.total}
+                      </span>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
           );
         })}
       </div>
 
-      <div className="mt-8 bg-slate-800 rounded-lg p-6 border border-slate-700">
-        <h2 className="text-lg font-semibold mb-4">Quick Start</h2>
-        <div className="space-y-3 text-slate-400">
-          <p>
-            <span className="text-purple-400 font-mono">1.</span> Add a storage
-            provider (e.g., Cloudflare R2, AWS S3)
-          </p>
-          <p>
-            <span className="text-purple-400 font-mono">2.</span> Create bucket
-            mappings to expose storage
-          </p>
-          <p>
-            <span className="text-purple-400 font-mono">3.</span> Generate
-            access keys for users
-          </p>
-          <p>
-            <span className="text-purple-400 font-mono">4.</span> Configure user
-            permissions per bucket
-          </p>
-        </div>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+        <Card className="col-span-4">
+          <CardHeader>
+            <h3 className="font-semibold text-lg">Quick Access</h3>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <Link to="/providers" className="block p-4 rounded-lg bg-muted/30 border border-border/50 hover:bg-muted/80 hover:border-primary/50 transition-all group">
+                <div className="flex items-center justify-between mb-2">
+                  <Database className="h-5 w-5 text-primary" />
+                  <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                </div>
+                <div className="font-medium">Manage Storage Providers</div>
+                <div className="text-sm text-muted-foreground mt-1">Configure AWS S3, Cloudflare R2, or MinIO connections.</div>
+              </Link>
+              
+              <Link to="/buckets" className="block p-4 rounded-lg bg-muted/30 border border-border/50 hover:bg-muted/80 hover:border-primary/50 transition-all group">
+                <div className="flex items-center justify-between mb-2">
+                  <FolderOpen className="h-5 w-5 text-primary" />
+                  <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                </div>
+                <div className="font-medium">Configure Buckets</div>
+                <div className="text-sm text-muted-foreground mt-1">Map remote buckets to virtual paths for your artists.</div>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="col-span-3">
+          <CardHeader>
+             <h3 className="font-semibold text-lg">System Status</h3>
+          </CardHeader>
+          <CardContent>
+             <div className="space-y-4">
+               <div className="flex items-center justify-between">
+                 <span className="text-sm text-muted-foreground">API Status</span>
+                 <span className="flex items-center gap-2 text-sm text-green-500 bg-green-500/10 px-2 py-1 rounded-full">
+                   <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                   Operational
+                 </span>
+               </div>
+               <div className="flex items-center justify-between">
+                 <span className="text-sm text-muted-foreground">Version</span>
+                 <span className="font-mono text-sm">v1.0.0</span>
+               </div>
+               <div className="flex items-center justify-between">
+                 <span className="text-sm text-muted-foreground">Environment</span>
+                 <span className="text-sm font-medium">Production</span>
+               </div>
+             </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

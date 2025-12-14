@@ -1,49 +1,54 @@
+import { cn } from "../../lib/utils";
+
 interface TableProps {
   children?: React.ReactNode;
   className?: string;
 }
 
-export default function Table({ children, className = "" }: TableProps) {
+export default function Table({ children, className }: TableProps) {
   return (
-    <div className="overflow-x-auto">
-      <table className={`w-full ${className}`}>{children}</table>
+    <div className="w-full overflow-auto">
+      <table className={cn("w-full caption-bottom text-sm", className)}>{children}</table>
     </div>
   );
 }
 
 export function TableHeader({ children }: { children: React.ReactNode }) {
   return (
-    <thead className="bg-slate-800 border-b border-slate-700">
+    <thead className="[&_tr]:border-b border-border">
       {children}
     </thead>
   );
 }
 
 export function TableBody({ children }: { children: React.ReactNode }) {
-  return <tbody className="divide-y divide-slate-700">{children}</tbody>;
+  return <tbody className="[&_tr:last-child]:border-0">{children}</tbody>;
 }
 
-export function TableRow({ children, className = "" }: TableProps) {
+export function TableRow({ children, className }: TableProps) {
   return (
-    <tr className={`hover:bg-slate-800/50 transition-colors ${className}`}>
+    <tr className={cn("border-b border-border transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted", className)}>
       {children}
     </tr>
   );
 }
 
-export function TableHead({ children, className = "" }: TableProps) {
+export function TableHead({ children, className }: TableProps) {
   return (
     <th
-      className={`px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider ${className}`}
+      className={cn(
+        "h-10 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0",
+        className
+      )}
     >
       {children}
     </th>
   );
 }
 
-export function TableCell({ children, className = "" }: TableProps) {
+export function TableCell({ children, className }: TableProps) {
   return (
-    <td className={`px-4 py-3 text-sm text-slate-300 ${className}`}>
+    <td className={cn("p-4 align-middle [&:has([role=checkbox])]:pr-0 text-foreground", className)}>
       {children}
     </td>
   );

@@ -1,25 +1,32 @@
-import { useState } from "react";
 import { Plus } from "lucide-react";
+import { useState } from "react";
 import KeyList from "../components/keys/KeyList";
 import KeyForm from "../components/keys/KeyForm";
+import Modal from "../components/ui/Modal";
 import Button from "../components/ui/Button";
 
 export default function Keys() {
-  const [showForm, setShowForm] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Access Keys</h1>
-        <Button onClick={() => setShowForm(true)}>
-          <Plus size={20} />
-          Create Key
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold tracking-tight">Access Keys</h1>
+        <Button onClick={() => setIsModalOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Create Access Key
         </Button>
       </div>
 
       <KeyList />
 
-      {showForm && <KeyForm onClose={() => setShowForm(false)} />}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="New Access Key"
+      >
+        <KeyForm onSuccess={() => setIsModalOpen(false)} />
+      </Modal>
     </div>
   );
 }

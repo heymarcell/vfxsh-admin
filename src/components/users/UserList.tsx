@@ -1,81 +1,51 @@
+import { Edit2 } from "lucide-react";
 import { useState } from "react";
-import { ChevronRight } from "lucide-react";
-import { useUsers, useUserAcl, useUpdateUserAcl } from "../../api/users";
+import { useForm } from "react-hook-form";
 import { useBuckets } from "../../api/buckets";
-import Table, { TableHeader, TableBody, TableRow, TableHead, TableCell } from "../ui/Table";
-import Modal from "../ui/Modal";
+import { useUpdateUserAcl, useUserAcl, useUsers } from "../../api/users";
+import type { UserAcl } from "../../types/api";
 import Button from "../ui/Button";
-import type { UpdateAclInput } from "../../types/api";
+import Modal from "../ui/Modal";
+import Table, { TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/Table";
 
 export default function UserList() {
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-  const { data: users, isLoading, error } = useUsers();
+  const { data: users, isLoading } = useUsers();
+  const [editingUser, setEditingUser] = useState<string | null>(null);
 
-  if (isLoading) {
-    return (
-      <div className="bg-slate-800 rounded-lg border border-slate-700 p-6 animate-pulse">
-        <div className="h-4 bg-slate-700 rounded w-1/4 mb-4" />
-        <div className="space-y-3">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-8 bg-slate-700 rounded" />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="text-center py-12 text-red-400">
-        <p>Failed to load users</p>
-      </div>
-    );
-  }
-
-  if (!users?.length) {
-    return (
-      <div className="text-center py-12 text-slate-400">
-        <p>No users found</p>
-        <p className="text-sm text-slate-500 mt-1">Users will appear here when they sign in</p>
-      </div>
-    );
-  }
+  if (isLoading) return <div className="p-8 text-center text-muted-foreground">Loading users...</div>;
 
   return (
     <>
-      <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
+      <div className="rounded-lg border border-border overflow-hidden bg-card">
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>User ID</TableHead>
               <TableHead>Email</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Joined</TableHead>
-              <TableHead className="w-16"></TableHead>
+              <TableHead>Last Sign In</TableHead>
+              <TableHead className="w-[100px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {users.map((user) => (
+            {users?.map((user) => (
               <TableRow key={user.id}>
-                <TableCell className="font-medium text-white">
-                  {user.email || "-"}
+                <TableCell className="font-mono text-xs text-muted-foreground">{user.id}</TableCell>
+                <TableCell className="font-medium">{user.email_addresses[0].email_address}</TableCell>
+                <TableCell className="text-muted-foreground text-xs">
+                  {user.last_sign_in_at
+                    ? new Date(user.last_sign_in_at).toLocaleDateString()
+                    : "Never"}
                 </TableCell>
-                <TableCell>{user.name || "-"}</TableCell>
-                <TableCell>
-                  <span className="px-2 py-0.5 rounded text-xs font-medium bg-purple-900/50 text-purple-400 border border-purple-800">
-                    {user.role}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  {new Date(user.created_at).toLocaleDateString()}
-                </TableCell>
-                <TableCell>
-                  <button
-                    onClick={() => setSelectedUserId(user.id)}
-                    className="text-slate-400 hover:text-white p-1 transition-colors"
+                <TableCell className="text-right">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    onClick={() => setEditingUser(user.id)}
                   >
-                    <ChevronRight size={16} />
-                  </button>
+                    <Edit2 className="h-4 w-4" />
+                    <span className="sr-only">Edit ACLs</span>
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
@@ -83,95 +53,101 @@ export default function UserList() {
         </Table>
       </div>
 
-      {selectedUserId && (
-        <UserAclModal
-          userId={selectedUserId}
-          onClose={() => setSelectedUserId(null)}
-        />
-      )}
+      <UserAclModal
+        userId={editingUser}
+        isOpen={!!editingUser}
+        onClose={() => setEditingUser(null)}
+      />
     </>
   );
 }
 
-function UserAclModal({ userId, onClose }: { userId: string; onClose: () => void }) {
-  const { data: acl, isLoading } = useUserAcl(userId);
+function UserAclModal({
+  userId,
+  isOpen,
+  onClose,
+}: {
+  userId: string | null;
+  isOpen: boolean;
+  onClose: () => void;
+}) {
   const { data: buckets } = useBuckets();
-  const updateAcl = useUpdateUserAcl(userId);
-  const [permissions, setPermissions] = useState<Record<string, "read" | "write" | "admin" | null>>({});
+  const { data: acl } = useUserAcl(userId || "");
+  const updateUserAcl = useUpdateUserAcl();
+  
+  const { register, handleSubmit } = useForm<{
+    [bucketName: string]: string; // "read" | "write" | "admin" | "none"
+  }>();
 
-  // Initialize permissions from current ACL
-  useState(() => {
-    if (acl) {
-      const initial: Record<string, "read" | "write" | "admin" | null> = {};
-      acl.forEach((a) => {
-        initial[a.bucket_name] = a.permission;
-      });
-      setPermissions(initial);
-    }
-  });
+  const onSubmit = (data: any) => {
+    if (!userId) return;
 
-  const handleSave = async () => {
-    const aclInput: UpdateAclInput[] = Object.entries(permissions)
-      .filter(([, perm]) => perm !== null)
-      .map(([bucket_name, permission]) => ({
-        bucket_name,
-        permission: permission as "read" | "write" | "admin",
-      }));
+    // Transform form data to payload
+    const payload: UserAcl = {
+      allowed_buckets: [],
+    };
 
-    try {
-      await updateAcl.mutateAsync(aclInput);
-      onClose();
-    } catch (error) {
-      console.error("Failed to update ACL:", error);
-    }
+    Object.entries(data).forEach(([bucket_name, permission]) => {
+      if (typeof permission === 'string' && permission !== "none") {
+        payload.allowed_buckets.push({
+            bucket_name,
+            permission: permission as "read" | "write" | "admin",
+        });
+      }
+    });
+
+    updateUserAcl.mutate(
+      { userId, acl: payload },
+      {
+        onSuccess: () => {
+          onClose();
+        },
+      }
+    );
   };
 
-  return (
-    <Modal isOpen={true} onClose={onClose} title="Edit User Permissions">
-      {isLoading ? (
-        <div className="py-8 text-center text-slate-400">Loading...</div>
-      ) : (
-        <div className="space-y-4">
-          <p className="text-sm text-slate-400">
-            Set bucket permissions for this user.
-          </p>
+  const currentPermissions = new Map(
+    acl?.allowed_buckets?.map((b) => [b.bucket_name, b.permission]) || []
+  );
 
-          <div className="space-y-2 max-h-64 overflow-y-auto">
-            {buckets?.map((bucket) => (
-              <div
-                key={bucket.bucket_name}
-                className="flex items-center justify-between p-3 bg-slate-900 rounded-lg"
-              >
-                <span className="font-mono text-sm">{bucket.bucket_name}</span>
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title="Manage User Permissions">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-4">
+        <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+            {!buckets?.length && <p className="text-sm text-muted-foreground text-center py-4">No buckets available.</p>}
+            
+            {buckets?.map((bucket) => {
+              const currentPerm = currentPermissions.get(bucket.bucket_name) || "none";
+              
+              return (
+              <div key={bucket.bucket_name} className="flex items-center justify-between space-x-4 border border-border p-3 rounded-md bg-muted/20">
+                <div className="flex-1 space-y-1">
+                  <p className="font-medium text-sm leading-none">{bucket.bucket_name}</p>
+                  <p className="text-xs text-muted-foreground">{bucket.remote_bucket_name} on {bucket.provider_name}</p>
+                </div>
                 <select
-                  value={permissions[bucket.bucket_name] || ""}
-                  onChange={(e) =>
-                    setPermissions((prev) => ({
-                      ...prev,
-                      [bucket.bucket_name]: (e.target.value || null) as "read" | "write" | "admin" | null,
-                    }))
-                  }
-                  className="px-2 py-1 bg-slate-800 border border-slate-600 rounded text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="h-8 w-[100px] rounded-md border border-input bg-background px-2 py-1 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  defaultValue={currentPerm}
+                  {...register(bucket.bucket_name)}
                 >
-                  <option value="">No access</option>
-                  <option value="read">Read</option>
-                  <option value="write">Write</option>
+                  <option value="none">No Access</option>
+                  <option value="read">Read Only</option>
+                  <option value="write">Read & Write</option>
                   <option value="admin">Admin</option>
                 </select>
               </div>
-            ))}
-          </div>
-
-          <div className="flex justify-end gap-3 pt-4">
-            <Button variant="secondary" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button onClick={handleSave} disabled={updateAcl.isPending}>
-              {updateAcl.isPending ? "Saving..." : "Save Permissions"}
-            </Button>
-          </div>
+            )})}
         </div>
-      )}
+
+        <div className="flex justify-end gap-2 pt-2">
+          <Button type="button" variant="ghost" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" isLoading={updateUserAcl.isPending}>
+            Save Permissions
+          </Button>
+        </div>
+      </form>
     </Modal>
   );
 }

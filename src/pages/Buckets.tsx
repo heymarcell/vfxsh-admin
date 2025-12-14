@@ -1,25 +1,32 @@
-import { useState } from "react";
 import { Plus } from "lucide-react";
+import { useState } from "react";
 import BucketList from "../components/buckets/BucketList";
 import BucketForm from "../components/buckets/BucketForm";
+import Modal from "../components/ui/Modal";
 import Button from "../components/ui/Button";
 
 export default function Buckets() {
-  const [showForm, setShowForm] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Bucket Mappings</h1>
-        <Button onClick={() => setShowForm(true)}>
-          <Plus size={20} />
-          Create Bucket
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold tracking-tight">Bucket Mappings</h1>
+        <Button onClick={() => setIsModalOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Map New Bucket
         </Button>
       </div>
 
       <BucketList />
 
-      {showForm && <BucketForm onClose={() => setShowForm(false)} />}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Map Remote Bucket"
+      >
+        <BucketForm onSuccess={() => setIsModalOpen(false)} />
+      </Modal>
     </div>
   );
 }

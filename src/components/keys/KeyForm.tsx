@@ -1,111 +1,86 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useCreateAccessKey } from "../../api/keys";
-import { useUsers } from "../../api/users";
-import Modal from "../ui/Modal";
-import Input from "../ui/Input";
+import type { CreateKeyResponse } from "../../types/api";
 import Button from "../ui/Button";
+import Input from "../ui/Input";
 import KeySecret from "./KeySecret";
 
 const keySchema = z.object({
-  user_id: z.string().min(1, "User is required"),
   name: z.string().optional(),
-  expiration: z.string().optional(),
+  user_id: z.string().min(1, "User ID / Email is required"),
+  expiration: z.string().optional(), // ISO date string
 });
 
-type KeyFormData = z.infer<typeof keySchema>;
+type KeyFormValues = z.infer<typeof keySchema>;
 
-interface KeyFormProps {
-  onClose: () => void;
-}
-
-export default function KeyForm({ onClose }: KeyFormProps) {
-  const [createdKey, setCreatedKey] = useState<{
-    accessKeyId: string;
-    secretKey: string;
-  } | null>(null);
-
+export default function KeyForm({ onSuccess }: { onSuccess?: () => void }) {
   const createKey = useCreateAccessKey();
-  const { data: users } = useUsers();
+  const [createdKey, setCreatedKey] = useState<CreateKeyResponse | null>(null);
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<KeyFormData>({
+    formState: { errors },
+    reset,
+  } = useForm<KeyFormValues>({
     resolver: zodResolver(keySchema),
   });
 
-  const onSubmit = async (data: KeyFormData) => {
-    try {
-      const result = await createKey.mutateAsync(data);
-      setCreatedKey({
-        accessKeyId: result.access_key_id,
-        secretKey: result.secret_key,
-      });
-    } catch (error) {
-      console.error("Failed to create key:", error);
-    }
+  const onSubmit = (data: KeyFormValues) => {
+    // If expiration is empty string, make it undefined
+    const payload = {
+      ...data,
+      expiration: data.expiration || undefined,
+    };
+    
+    createKey.mutate(payload, {
+      onSuccess: (response) => {
+        setCreatedKey(response);
+        reset();
+        onSuccess?.();
+      },
+    });
   };
 
-  if (createdKey) {
-    return (
-      <KeySecret
-        accessKeyId={createdKey.accessKeyId}
-        secretKey={createdKey.secretKey}
-        onClose={onClose}
-      />
-    );
-  }
-
   return (
-    <Modal isOpen={true} onClose={onClose} title="Create Access Key">
+    <>
+       {/* Modal to show secret only once */}
+      {createdKey && (
+        <KeySecret
+          accessKeyId={createdKey.access_key_id}
+          secretAccessKey={createdKey.secret_access_key}
+          onClose={() => setCreatedKey(null)}
+        />
+      )}
+
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div className="space-y-1">
-          <label className="block text-sm font-medium text-slate-300">
-            User
-          </label>
-          <select
-            className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-            {...register("user_id")}
-          >
-            <option value="">Select a user</option>
-            {users?.map((user) => (
-              <option key={user.id} value={user.id}>
-                {user.email || user.name || user.id}
-              </option>
-            ))}
-          </select>
-          {errors.user_id && (
-            <p className="text-sm text-red-400">{errors.user_id.message}</p>
-          )}
-        </div>
+        <Input
+          label="User Email or ID"
+          placeholder="artist@studio.com"
+          error={errors.user_id?.message}
+          {...register("user_id")}
+        />
 
         <Input
-          label="Key Name (optional)"
-          placeholder="e.g., Production Key"
-          error={errors.name?.message}
+          label="Key Name (Optional)"
+          placeholder="Render Farm 01"
           {...register("name")}
         />
 
         <Input
-          label="Expiration (optional)"
+          label="Expiration (Optional)"
           type="datetime-local"
-          error={errors.expiration?.message}
+           // Simple nice-to-have: could default to 30 days from now
           {...register("expiration")}
         />
 
-        <div className="flex justify-end gap-3 pt-4">
-          <Button type="button" variant="secondary" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Creating..." : "Create Key"}
-          </Button>
-        </div>
+        <Button type="submit" isLoading={createKey.isPending} className="w-full">
+          Generate Access Key
+        </Button>
       </form>
-    </Modal>
+    </>
   );
 }
