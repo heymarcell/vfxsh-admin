@@ -1,4 +1,4 @@
-import { Trash2, UserPlus } from "lucide-react";
+import { Trash2, Search, UserPlus } from "lucide-react";
 import { useState } from "react";
 import { useAddGroupMember, useGroup, useRemoveGroupMember } from "../../api/groups";
 import { useUsers } from "../../api/users";
@@ -18,98 +18,136 @@ export default function GroupManageModal({ groupId, isOpen, onClose }: GroupMana
   const addMember = useAddGroupMember();
   const removeMember = useRemoveGroupMember();
 
-  const [selectedUserId, setSelectedUserId] = useState("");
+  const [addSearch, setAddSearch] = useState("");
+  const [memberSearch, setMemberSearch] = useState("");
+
+  // Moved hooks before early return
+  const memberIds = new Set(groupDetails?.members?.map((m: any) => m.id) || []);
+  
+  const availableUsers = !addSearch.trim() ? [] : (users || [])
+    .filter((u: any) => !memberIds.has(u.id))
+    .filter((u: any) => {
+      const q = addSearch.toLowerCase();
+      return u.email?.toLowerCase().includes(q) || u.name?.toLowerCase().includes(q);
+    })
+    .slice(0, 8);
+
+  const filteredMembers = !groupDetails?.members ? [] : 
+    !memberSearch.trim() ? groupDetails.members :
+    groupDetails.members.filter((m: any) => {
+      const q = memberSearch.toLowerCase();
+      return m.email?.toLowerCase().includes(q) || m.name?.toLowerCase().includes(q);
+    });
 
   if (!groupId) return null;
 
-  const handleAddMember = () => {
-    if (!selectedUserId) return;
+  const handleAddMember = (userId: string) => {
     addMember.mutate(
-      { groupId, userId: selectedUserId },
-      {
-        onSuccess: () => {
-          setSelectedUserId("");
-        },
-      }
+      { groupId, userId },
+      { onSuccess: () => setAddSearch("") }
     );
   };
 
   const handleRemoveMember = (userId: string) => {
-    if (confirm("Are you sure you want to remove this user from the group?")) {
+    if (confirm("Remove this user from the group?")) {
       removeMember.mutate({ groupId, userId });
     }
   };
 
-  // Filter out users who are already members
-  const availableUsers = users?.filter(
-    (u) => !groupDetails?.members.some((m) => m.id === u.id)
-  );
-
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={`Manage ${groupDetails?.group.name || "Group"}`}>
+    <Modal isOpen={isOpen} onClose={onClose} title={`Manage ${groupDetails?.group?.name || "Group"}`}>
       <div className="space-y-6 pt-4">
         
         {/* Add Member Section */}
-        <div className="flex gap-2 items-end border-b pb-6">
-          <div className="flex-1 space-y-2">
-            <label className="text-sm font-medium leading-none">Add Member</label>
-            <select
-                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                value={selectedUserId}
-                onChange={(e) => setSelectedUserId(e.target.value)}
-            >
-                <option value="">Select user to add...</option>
-                {availableUsers?.map((u) => (
-                    <option key={u.id} value={u.id}>
-                        {u.email} ({u.name || "No Name"})
-                    </option>
-                ))}
-            </select>
+        <div className="border-b pb-6">
+          <label className="text-sm font-medium leading-none mb-2 block">Add Member</label>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search users by email or name..."
+              value={addSearch}
+              onChange={(e) => setAddSearch(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            />
           </div>
-          <Button 
-            onClick={handleAddMember} 
-            disabled={!selectedUserId || addMember.isPending}
-            isLoading={addMember.isPending}
-            size="sm"
-          >
-            <UserPlus className="mr-2 h-4 w-4" />
-            Add
-          </Button>
+          {addSearch.trim() && (
+            <div className="mt-2 border rounded-md divide-y max-h-[200px] overflow-y-auto">
+              {availableUsers.length === 0 ? (
+                <p className="p-3 text-sm text-muted-foreground text-center">No matching users</p>
+              ) : (
+                availableUsers.map((u: any) => (
+                  <button
+                    key={u.id}
+                    onClick={() => handleAddMember(u.id)}
+                    disabled={addMember.isPending}
+                    className="w-full p-2 text-left hover:bg-muted/30 flex items-center justify-between text-sm"
+                  >
+                    <div>
+                      <p className="font-medium">{u.email}</p>
+                      <p className="text-xs text-muted-foreground">{u.name || "—"}</p>
+                    </div>
+                    <UserPlus className="h-4 w-4 text-muted-foreground" />
+                  </button>
+                ))
+              )}
+            </div>
+          )}
         </div>
 
         {/* Members List */}
-        <div className="space-y-4">
-            <h3 className="text-sm font-medium text-muted-foreground">Current Members</h3>
-            
-            {isLoading && <p>Loading...</p>}
-            
-            {!isLoading && groupDetails?.members.length === 0 && (
-                <p className="text-sm text-muted-foreground italic">No members in this group.</p>
-            )}
-
-            <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
-                {groupDetails?.members.map((member) => (
-                    <div key={member.id} className="flex items-center justify-between p-2 rounded-md border bg-muted/20">
-                        <div className="text-sm">
-                            <p className="font-medium">{member.name || "No Name"}</p>
-                            <p className="text-xs text-muted-foreground">{member.email}</p>
-                        </div>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-destructive hover:text-destructive hover:bg-destructive/10 h-8 w-8"
-                            onClick={() => handleRemoveMember(member.id)}
-                            isLoading={removeMember.isPending && removeMember.variables?.userId === member.id}
-                        >
-                            <Trash2 className="h-4 w-4" />
-                        </Button>
-                    </div>
-                ))}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-medium text-muted-foreground">
+              Members ({groupDetails?.members?.length || 0})
+            </h3>
+          </div>
+          
+          {(groupDetails?.members?.length || 0) > 5 && (
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Filter members..."
+                value={memberSearch}
+                onChange={(e) => setMemberSearch(e.target.value)}
+                className="w-full pl-9 pr-3 py-1.5 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              />
             </div>
+          )}
+          
+          {isLoading && <p className="text-sm text-muted-foreground">Loading...</p>}
+          
+          {!isLoading && groupDetails?.members?.length === 0 && (
+            <p className="text-sm text-muted-foreground italic py-4 text-center">No members in this group.</p>
+          )}
+
+          <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+            {filteredMembers.map((member: any) => (
+              <div key={member.id} className="flex items-center justify-between p-2 rounded-md border bg-muted/20">
+                <div className="text-sm min-w-0 flex-1">
+                  <p className="font-medium truncate">{member.email}</p>
+                  <p className="text-xs text-muted-foreground truncate">{member.name || "—"}</p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-destructive hover:text-destructive hover:bg-destructive/10 h-8 w-8 shrink-0"
+                  onClick={() => handleRemoveMember(member.id)}
+                  disabled={removeMember.isPending && removeMember.variables?.userId === member.id}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+            {memberSearch && filteredMembers.length === 0 && groupDetails?.members?.length !== 0 && (
+              <p className="text-sm text-muted-foreground text-center py-2">No members match "{memberSearch}"</p>
+            )}
+          </div>
         </div>
 
         <div className="flex justify-end pt-2">
-            <Button variant="ghost" onClick={onClose}>Close</Button>
+          <Button variant="ghost" onClick={onClose}>Close</Button>
         </div>
       </div>
     </Modal>
