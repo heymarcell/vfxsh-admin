@@ -60,6 +60,7 @@ export function useAddGroupMember() {
     onSuccess: (_, { groupId }) => {
       queryClient.invalidateQueries({ queryKey: ["groups", groupId] });
       queryClient.invalidateQueries({ queryKey: ["groups"] });
+      queryClient.invalidateQueries({ queryKey: ["users"] }); // Groups column on users
     },
   });
 }
@@ -75,6 +76,7 @@ export function useRemoveGroupMember() {
     onSuccess: (_, { groupId }) => {
       queryClient.invalidateQueries({ queryKey: ["groups", groupId] });
       queryClient.invalidateQueries({ queryKey: ["groups"] });
+      queryClient.invalidateQueries({ queryKey: ["users"] }); // Groups column on users
     },
   });
 }

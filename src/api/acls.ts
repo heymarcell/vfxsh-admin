@@ -85,6 +85,8 @@ export function useSetUserBucketPermission() {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["acls", "users"] });
+      queryClient.invalidateQueries({ queryKey: ["keys"] }); // Bucket count on keys
+      queryClient.invalidateQueries({ queryKey: ["users"] }); // Bucket count on users
     },
   });
 }
@@ -128,6 +130,8 @@ export function useSetGroupBucketPermission() {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["acls", "groups"] });
+      queryClient.invalidateQueries({ queryKey: ["keys"] }); // Bucket count on keys
+      queryClient.invalidateQueries({ queryKey: ["users"] }); // Bucket count on users
     },
   });
 }
