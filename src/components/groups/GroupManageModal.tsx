@@ -37,11 +37,11 @@ export default function GroupManageModal({ groupId, isOpen, onClose }: GroupMana
     .slice(0, 8);
 
   const filteredMembers = !groupDetails?.members ? [] : 
-    !memberSearch.trim() ? groupDetails.members :
+    !memberSearch.trim() ? groupDetails.members.slice(0, 50) :
     groupDetails.members.filter((m: any) => {
       const q = memberSearch.toLowerCase();
       return m.email?.toLowerCase().includes(q) || m.name?.toLowerCase().includes(q);
-    });
+    }).slice(0, 50);
 
   if (!groupId) return null;
 
@@ -166,18 +166,16 @@ export default function GroupManageModal({ groupId, isOpen, onClose }: GroupMana
             </h3>
           </div>
           
-          {(groupDetails?.members?.length || 0) > 5 && (
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="Filter members..."
-                value={memberSearch}
-                onChange={(e) => setMemberSearch(e.target.value)}
-                className="w-full pl-9 pr-3 py-1.5 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-              />
-            </div>
-          )}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Filter members..."
+              value={memberSearch}
+              onChange={(e) => setMemberSearch(e.target.value)}
+              className="w-full pl-9 pr-3 py-1.5 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+          </div>
           
           {isLoading && <p className="text-sm text-muted-foreground">Loading...</p>}
           
@@ -205,6 +203,11 @@ export default function GroupManageModal({ groupId, isOpen, onClose }: GroupMana
             ))}
             {memberSearch && filteredMembers.length === 0 && groupDetails?.members?.length !== 0 && (
               <p className="text-sm text-muted-foreground text-center py-2">No members match "{memberSearch}"</p>
+            )}
+            {(groupDetails?.members?.length || 0) > 50 && !memberSearch && (
+              <p className="text-xs text-muted-foreground text-center py-2 border-t mt-2 pt-3">
+                Showing 50 of {groupDetails?.members?.length} members. Use filter to find specific users.
+              </p>
             )}
           </div>
         </div>
