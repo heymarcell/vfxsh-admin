@@ -50,3 +50,17 @@ export function useDeleteAccessKey() {
   });
 }
 
+export function useRotateAccessKey() {
+  const api = useApiClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (keyId: string) => {
+      const { data } = await api.post<{ access_key_id: string; secret_key: string }>(`/keys/${keyId}/rotate`);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["keys"] });
+    },
+  });
+}
