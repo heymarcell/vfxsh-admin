@@ -19,6 +19,11 @@ const actionColors: Record<string, string> = {
   "member:invite": "text-blue-400",
   "member:remove": "text-orange-400",
   "member:role-change": "text-purple-400",
+  "file:read": "text-blue-300",
+  "file:write": "text-yellow-300",
+  "file:delete": "text-red-300",
+  "lock:acquire": "text-amber-400",
+  "lock:release": "text-green-300",
 };
 
 export default function PlatformAudit() {
@@ -70,6 +75,8 @@ export default function PlatformAudit() {
               <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground">User</th>
               <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground">Action</th>
               <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground">Resource</th>
+              <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground">Resource</th>
+              <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground">IP</th>
               <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground">Details</th>
             </tr>
           </thead>
@@ -102,8 +109,12 @@ export default function PlatformAudit() {
                     )}
                   </div>
                 </td>
+
+                <td className="px-4 py-3 text-sm text-muted-foreground">
+                  {log.ipAddress || '-'}
+                </td>
                 <td className="px-4 py-3 text-sm text-muted-foreground max-w-[200px] truncate">
-                  {log.details ? JSON.stringify(log.details) : "-"}
+                  {log.details ? (typeof log.details === 'string' ? log.details : JSON.stringify(log.details)) : "-"}
                 </td>
               </tr>
             ))}

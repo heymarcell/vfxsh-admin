@@ -25,9 +25,12 @@ export function TableBody({ children }: { children: React.ReactNode }) {
   return <tbody className="[&_tr:last-child]:border-0">{children}</tbody>;
 }
 
-export function TableRow({ children, className }: TableProps) {
+export function TableRow({ children, className, ...props }: React.HTMLAttributes<HTMLTableRowElement>) {
   return (
-    <tr className={cn("border-b border-border transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted", className)}>
+    <tr 
+      className={cn("border-b border-border transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted", className)}
+      {...props}
+    >
       {children}
     </tr>
   );
