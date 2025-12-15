@@ -100,7 +100,7 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
         try {
           const statusRes = await api.get('/platform/status');
           if (mounted) {
-            setIsSuperAdmin(statusRes.data.isSuperAdmin || false);
+            setIsSuperAdmin(statusRes.data?.isSuperAdmin || false);
           }
         } catch {
           // Not super admin or endpoint not available

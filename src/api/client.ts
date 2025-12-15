@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useAuth } from "@clerk/clerk-react";
+import { useMemo } from "react";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -14,24 +15,30 @@ export const api = axios.create({
 export function useApiClient() {
   const { getToken } = useAuth();
 
-  const authApi = axios.create({
-    baseURL: API_URL,
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+  // Memoize the axios instance to prevent recreating on every render
+  // This is critical for useEffect dependencies that depend on api
+  const authApi = useMemo(() => {
+    const instance = axios.create({
+      baseURL: API_URL,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
-  authApi.interceptors.request.use(async (config) => {
-    const token = await getToken();
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    const orgId = localStorage.getItem('vfxsh_org_id');
-    if (orgId) {
-      config.headers['X-Organization-ID'] = orgId;
-    }
-    return config;
-  });
+    instance.interceptors.request.use(async (config) => {
+      const token = await getToken();
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+      const orgId = localStorage.getItem('vfxsh_org_id');
+      if (orgId) {
+        config.headers['X-Organization-ID'] = orgId;
+      }
+      return config;
+    });
+
+    return instance;
+  }, [getToken]);
 
   return authApi;
 }
